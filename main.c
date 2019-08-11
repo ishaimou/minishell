@@ -55,7 +55,7 @@ void	read_cmd(t_minishell *msh)
 
 void	parse_cmd(t_minishell *msh)
 {
-	msh->args = ft_strsplitwhitespace(msh->line, ' ');
+	msh->args = ft_split_whitespaces(msh->line);
 }
 
 void	launch_cmd(t_minishell *msh)
