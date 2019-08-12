@@ -14,7 +14,7 @@
 
 int		ft_is_whitespace(char c)
 {
-	if (c == ' ' || c == '\t' || c == '\n')
+	if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
 		return (1);
 	return (0);
 }
