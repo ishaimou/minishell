@@ -18,19 +18,26 @@
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
 
-typedef int (*builtin_func)	(char **);
+typedef struct s_minishell	t_minishell;
 
-typedef	struct 		s_minishell
+typedef void (*builtin_func) (t_minishell *);
+
+struct		 		s_minishell
 {
+	int				argc;
 	char			*line;
 	char			**args;
+	char			**cmds;
 	char			*cmd_path;
+	char			*home;
+	char			*oldpwd;
 	char			**env;
 	char			**builtin_name;
 	builtin_func	*funct_tab;
-}					t_minishell;
+};
 
-int		builtin_cd(char	**args);
-int		builtin_exit(char **args);
+
+void		builtin_cd(t_minishell *msh);
+void		builtin_exit(t_minishell *msh);
 
 #endif

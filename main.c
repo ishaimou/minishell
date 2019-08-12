@@ -111,22 +111,6 @@ void	find_path_cmd(t_minishell *msh, char **env)
 		get_cmd_path(msh, paths);
 }
 
-
-int		parse_cmd(t_minishell *msh)
-{
-	char	**env;
-
-	env = msh->env;
-	msh->args = ft_split_whitespaces(msh->line);
-	if (!msh->args[0])
-		return (0);
-	if (ft_strchr(msh->args[0], '/'))
-		msh->cmd_path = msh->args[0];
-	else
-		find_path_cmd(msh, env);
-	return (1);
-}
-
 void	launch_cmd(t_minishell *msh)
 {
 	pid_t	cpid;
@@ -143,14 +127,18 @@ void	launch_cmd(t_minishell *msh)
 	{
 		if (execve(msh->cmd_path, msh->args, msh->env) < 0)
 		{
-			ft_printf("Error cmd\n");
+			ft_dprintf(2, "Error cmd\n");
 			free_msh(msh);
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		wpid = waitpid(cpid, &stat_loc, WUNTRACED);
+		if ((wpid = waitpid(cpid, &stat_loc, WUNTRACED)) < 0)
+		{
+			ft_dprintf(2, "Error waitpid\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	msh->cmd_path = NULL;
 }
@@ -174,17 +162,80 @@ void	set_builtin(t_minishell *msh)
 	msh->funct_tab[1] = &builtin_exit;
 }
 
-
-int		builtin_cd(char **args)
+void		get_home(t_minishell *msh, char **env)
 {
-	return (0);
+	char	**home_env;
+
+	home_env = NULL;
+	while (*env && !ft_strstr(*env, "HOME"))
+		env++;
+	if (env)
+	{
+		home_env = ft_strsplit(*env, '=');
+		if (*home_env)
+			msh->home = home_env[1];
+	}
 }
 
-int		builtin_exit(char **args)
+void		get_oldpwd(t_minishell *msh, char **env)
 {
-	if (!args[1])
+	char	**oldpwd_env;
+	
+	oldpwd_env = NULL;
+	while (*env && !ft_strstr(*env, "OLDPWD"))
+		env++;
+	if (env)
+	{
+		oldpwd_env = ft_strsplit(*env, '=');
+		if (*oldpwd_env)
+			msh->oldpwd = oldpwd_env[1];
+	}
+}
+
+int		get_argc(char **args)
+{
+	int		argc;
+
+	argc = 0;
+	while (*args)
+	{
+		argc++;
+		args++;
+	}
+	return (argc);
+}
+
+void		builtin_cd(t_minishell *msh)
+{
+	msh->argc = get_argc(msh->args);
+	if (msh->argc > 2)
+		ft_printf("usage: cd [optional argument]\n");
+	else if (!msh->args[1])
+	{
+		get_home(msh, msh->env);
+		if (chdir(msh->home))
+			ft_dprintf(2, "Error chdir\n");
+	}
+	else if (!ft_strcmp(msh->args[1], "-"))
+	{
+		get_oldpwd(msh, msh->env);
+		if (chdir(msh->oldpwd))
+			ft_dprintf(2, "Error chdir\n");
+	}
+	else
+	{
+		if (chdir(msh->args[1]))
+			ft_dprintf(2, "Error chdir\n");
+	}
+	msh->argc = 0;
+	msh->cmd_path = NULL;
+}
+
+void		builtin_exit(t_minishell *msh)
+{
+	if (!msh->args[1])
 		exit(EXIT_SUCCESS);
-	exit(ft_atoi(args[1]));
+	exit(ft_atoi(msh->args[1]));
 }
 
 int		is_builtin(t_minishell *msh, char *cmd_name)
@@ -198,24 +249,51 @@ int		is_builtin(t_minishell *msh, char *cmd_name)
 	return (-1);
 }
 
+int		exec_cmd(t_minishell *msh, char **env)
+{
+	int		i;
+	int		pos;
+
+	i = 0;
+	pos = 0;
+	msh->cmds = ft_strsplit(msh->line, ';');
+	if (!msh->cmds[0])
+		return (0);
+	while (msh->cmds[i])
+	{
+		msh->args = ft_split_whitespaces(msh->cmds[i]);
+		if (*msh->args)
+		{
+			if (ft_strchr(msh->args[0], '/'))
+				msh->cmd_path = msh->args[0];
+			else
+				find_path_cmd(msh, env);
+			if ((pos = is_builtin(msh, msh->args[0])) != -1)
+				(msh->funct_tab[pos])(msh);
+			else
+				launch_cmd(msh);
+		}
+		i++;
+	}
+	return (1);
+}
+/*
 void	exec_cmd(t_minishell *msh)
 {
 	int		pos;	
 
-	if ((pos = is_builtin(msh, msh->args[0])) != -1)
-	{
-		(msh->funct_tab[pos])(msh->args);
-	}
-	else
-		launch_cmd(msh);
 }
-
+*/
 int		main(int ac, char *av[], char *env[])
 {
 	t_minishell		msh;
 	msh.env = env;
+	msh.cmds = NULL;
 	msh.cmd_path = NULL;
 	msh.args = NULL;
+	msh.argc = 0;
+	msh.home = NULL;
+	msh.oldpwd = NULL;
 
 	print_2d(env);
 	set_builtin(&msh);
@@ -228,9 +306,9 @@ int		main(int ac, char *av[], char *env[])
 		ft_putstr(">>> ");
 		//prompt_dir();
 		read_cmd(&msh);
-		if (!parse_cmd(&msh))
+		if (!exec_cmd(&msh, env))
 			continue ;
-		exec_cmd(&msh);
+		printf("odlpwd = %s\n", msh.oldpwd);
 		//print_2d(msh.args);
 		//printf("cmd_path = %s\n", msh.cmd_path); 
 		//msh.cmd_path = NULL;
