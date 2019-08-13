@@ -13,7 +13,7 @@
 
 # define IS_TRUE 1
 # define CWD_BUF_SIZE 2048 
-# define BUILTIN_NUM 2
+# define BUILTIN_NUM 6 
 
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
@@ -47,5 +47,9 @@ struct		 		s_minishell
 
 void		builtin_cd(t_minishell *msh);
 void		builtin_exit(t_minishell *msh);
+void		builtin_echo(t_minishell *msh);
+void		builtin_env(t_minishell *msh);
+void		builtin_setenv(t_minishell *msh);
+void		builtin_unsetenv(t_minishell *msh);
 
 #endif

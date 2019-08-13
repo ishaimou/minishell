@@ -1,14 +1,5 @@
 #include "minishell.h"
 
-void	print_envlst(t_envlst	*env_lst)
-{
-	while (env_lst)
-	{
-		ft_printf("%s=%s\n", env_lst->name, env_lst->value);
-		env_lst = env_lst->next;
-	}
-}
-
 void    free_dbl(char ***tab)
 {
 	int		i;
@@ -35,6 +26,50 @@ void	print_2d(char **s)
 {
 	while (*s)
 		printf("%s\n", *s++);
+}
+
+void	print_envlst(t_envlst	*env_lst)
+{
+	while (env_lst)
+	{
+		ft_printf("%s=%s\n", env_lst->name, env_lst->value);
+		env_lst = env_lst->next;
+	}
+}
+
+void	add_envlst(t_envlst **env_lst, char **tab_env)
+{
+	t_envlst	*node;
+	t_envlst	*tmp;
+
+	node = (t_envlst*)malloc(sizeof(t_envlst));
+	node->next = NULL;
+	node->name = ft_strdup(tab_env[0]);
+	node->value = ft_strdup(tab_env[1]);
+	if (!*env_lst)
+		*env_lst = node;
+	else
+	{
+		tmp = *env_lst;
+		while (tmp->next)
+			tmp = tmp->next;
+		tmp->next = node;
+	}
+}
+
+void	set_envlist(t_minishell *msh, char **env)
+{
+	char	**tab_env;
+
+	tab_env = NULL;
+	while (*env)
+	{
+		tab_env = ft_strsplit(*env, '=');
+		if (*tab_env)
+			add_envlst(&msh->env_lst, tab_env);
+		free_dbl(&tab_env);
+		env++;
+	}
 }
 
 char	*ft_strjoin_sep(const char *s1, const char *s2, char *sep)
@@ -155,10 +190,18 @@ void	set_builtin(t_minishell *msh)
 	msh->builtin_name[BUILTIN_NUM] = NULL;
 	msh->builtin_name[0] = ft_strdup("cd");
 	msh->builtin_name[1] = ft_strdup("exit");
+	msh->builtin_name[2] = ft_strdup("env");
+	msh->builtin_name[3] = ft_strdup("setenv");
+	msh->builtin_name[4] = ft_strdup("unsetenv");
+	msh->builtin_name[5] = ft_strdup("echo");
 	msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func) * (BUILTIN_NUM + 1));
 	msh->funct_tab[BUILTIN_NUM] = NULL;
 	msh->funct_tab[0] = &builtin_cd;
 	msh->funct_tab[1] = &builtin_exit;
+	msh->funct_tab[2] = &builtin_env;
+	msh->funct_tab[3] = &builtin_setenv;
+	msh->funct_tab[4] = &builtin_unsetenv;
+	msh->funct_tab[5] = &builtin_echo;
 }
 
 int		get_argc(char **args)
@@ -196,7 +239,7 @@ void		builtin_cd(t_minishell *msh)
 	buf = NULL;
 	msh->argc = get_argc(msh->args);
 	if (msh->argc > 2)
-		ft_printf("usage: cd [optional argument]\n");
+		ft_printf("cd: usage: cd [optional argument]\n");
 	else if (!msh->args[1])
 	{
 		msh->home = get_envlst_val(msh, "HOME")->value;
@@ -244,9 +287,124 @@ void		builtin_cd(t_minishell *msh)
 
 void		builtin_exit(t_minishell *msh)
 {
+	int		argc;
+
+	argc = get_argc(msh->args);
+	if (argc > 2)
+	{
+		ft_printf("exit: too many arguments\n");
+		return ;
+	}
 	if (!msh->args[1])
 		exit(EXIT_SUCCESS);
 	exit(ft_atoi(msh->args[1]));
+}
+
+void	builtin_env(t_minishell *msh)
+{
+	t_envlst	*env_lst;
+	int			argc;
+	
+	argc = get_argc(msh->args);
+	if (argc > 1)
+	{
+		ft_printf("env: %s: No such file or directory\n", msh->args[1]);
+		return ;
+	}
+	env_lst = msh->env_lst;
+	while (env_lst)
+	{
+		ft_printf("%s=%s\n", env_lst->name, env_lst->value);
+		env_lst = env_lst->next;
+	}
+}
+
+void	builtin_setenv(t_minishell *msh)
+{
+	t_envlst	*env_lst;
+	char		**args;
+	int			argc;
+	
+
+	if ((argc = get_argc(msh->args) != 3))
+	{
+		ft_printf("setenv: usage: setenv [NAME] [VALUE]\n");
+		return ;
+	}
+	args = msh->args;
+	env_lst = msh->env_lst;
+	while (env_lst)
+	{
+		if (!ft_strcmp(args[1], env_lst->name))
+		{	
+			free(env_lst->value);
+			env_lst->value = ft_strdup(args[2]);
+			return ;
+		}
+		env_lst = env_lst->next;
+	}
+	add_envlst(&msh->env_lst, ++args); 
+}
+
+void	ft_unsetenv(t_minishell **msh, t_envlst **node, t_envlst **prev)
+{
+	t_envlst	*tmp;
+
+	if ((*msh)->env_lst == *node)
+	{
+		tmp = *node;
+		*node = (*node)->next;
+		(*msh)->env_lst = *node;
+		free(tmp);
+	}
+	else
+	{
+		(*prev)->next = (*node)->next;
+		free(*node);
+	}
+}
+
+void	builtin_unsetenv(t_minishell *msh)
+{
+	t_envlst	*env_lst;
+	t_envlst	*prev;
+	int			argc;
+
+	if ((argc = get_argc(msh->args)) != 2)
+	{
+		ft_printf("unsetenv: usage: unsetenv [NAME]\n");
+		return ;
+	}
+	env_lst = msh->env_lst;
+	prev = env_lst;
+	while (env_lst)
+	{
+		if (!strcmp(msh->args[1], env_lst->name))
+			ft_unsetenv(&msh, &env_lst, &prev);
+		prev = env_lst;
+		env_lst = env_lst->next;
+	}
+}
+
+void	builtin_echo(t_minishell *msh)
+{
+	char	**args;
+	int		argc;
+	int		i;
+
+	i = 1;
+	argc = get_argc(msh->args);
+	args = msh->args;
+	args++;
+	while (*args)
+	{
+		i++;
+		ft_printf("%s", *args);
+		if (i != argc)
+			ft_putchar(' ');
+		args++;
+	}
+	ft_putchar('\n');
 }
 
 int		is_builtin(t_minishell *msh, char *cmd_name)
@@ -291,41 +449,6 @@ int		exec_cmd(t_minishell *msh)
 	return (1);
 }
 
-
-void	add_envlist(t_envlst **env_lst, char **tab_env)
-{
-	t_envlst	*node;
-	t_envlst	*tmp;
-
-	node = (t_envlst*)malloc(sizeof(t_envlst));
-	node->next = NULL;
-	node->name = ft_strdup(tab_env[0]);
-	node->value = ft_strdup(tab_env[1]);
-	if (!*env_lst)
-		*env_lst = node;
-	else
-	{
-		tmp = *env_lst;
-		while (tmp->next)
-			tmp = tmp->next;
-		tmp->next = node;
-	}
-}
-
-void	set_envlist(t_minishell *msh, char **env)
-{
-	char	**tab_env;
-
-	tab_env = NULL;
-	while (*env)
-	{
-		tab_env = ft_strsplit(*env, '=');
-		if (*tab_env)
-			add_envlist(&msh->env_lst, tab_env);
-		free_dbl(&tab_env);
-		env++;
-	}
-}
 
 void	set_oldpwd(t_minishell *msh)
 {
