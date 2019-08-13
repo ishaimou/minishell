@@ -1,5 +1,14 @@
 #include "minishell.h"
 
+void	print_envlst(t_envlst	*env_lst)
+{
+	while (env_lst)
+	{
+		ft_printf("%s=%s\n", env_lst->name, env_lst->value);
+		env_lst = env_lst->next;
+	}
+}
+
 void    free_dbl(char ***tab)
 {
 	int		i;
@@ -38,18 +47,6 @@ char	*ft_strjoin_sep(const char *s1, const char *s2, char *sep)
 	strsep = ft_strjoin(s1, sep);
 	str = ft_strjoin(strsep, s2);
 	return (str);
-}
-
-
-void	prompt_dir(void)
-{
-	char	*cwd_buf;
-
-	cwd_buf = NULL;
-	getcwd(cwd_buf, CWD_BUF_SIZE);
-	if (cwd_buf)
-		ft_putstr(cwd_buf);
-	ft_putstr(" >>> ");
 }
 
 void	read_cmd(t_minishell *msh)
@@ -92,18 +89,20 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 	}
 }
 
-void	find_path_cmd(t_minishell *msh, char **env)
+void	find_path_cmd(t_minishell *msh)
 {
 	char			**path_env;
 	char			**paths;
+	int				i;
 
 	path_env = NULL;
 	paths = NULL;
-	while (*env && !ft_strstr(*env, "PATH"))
-		env++;
-	if (env)
+	i = 0;
+	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
+		i++;
+	if (msh->env[i])
 	{
-		path_env = ft_strsplit(*env, '=');
+		path_env = ft_strsplit(msh->env[i], '=');
 		if (*path_env)
 			paths = ft_strsplit(*(path_env + 1), ':');
 	}
@@ -162,36 +161,6 @@ void	set_builtin(t_minishell *msh)
 	msh->funct_tab[1] = &builtin_exit;
 }
 
-void		get_home(t_minishell *msh, char **env)
-{
-	char	**home_env;
-
-	home_env = NULL;
-	while (*env && !ft_strstr(*env, "HOME"))
-		env++;
-	if (env)
-	{
-		home_env = ft_strsplit(*env, '=');
-		if (*home_env)
-			msh->home = home_env[1];
-	}
-}
-
-void		get_oldpwd(t_minishell *msh, char **env)
-{
-	char	**oldpwd_env;
-	
-	oldpwd_env = NULL;
-	while (*env && !ft_strstr(*env, "OLDPWD"))
-		env++;
-	if (env)
-	{
-		oldpwd_env = ft_strsplit(*env, '=');
-		if (*oldpwd_env)
-			msh->oldpwd = oldpwd_env[1];
-	}
-}
-
 int		get_argc(char **args)
 {
 	int		argc;
@@ -205,30 +174,70 @@ int		get_argc(char **args)
 	return (argc);
 }
 
+t_envlst	*get_envlst_val(t_minishell *msh, char *name)
+{
+	t_envlst	*tmp;
+	
+	tmp = msh->env_lst;
+	while (tmp)
+	{
+		if (!ft_strcmp(tmp->name, name))
+			return (tmp);
+		tmp = tmp->next;
+	}
+	return (NULL);
+}
+
+void	set_oldpwd(t_minishell *msh)
+{
+	t_envlst	*node;
+
+	node = get_envlst_val(msh, "OLDPWD");
+	msh->pwd = get_envlst_val(msh, "PWD")->value;
+	if (node)
+	{
+		free(node->value);
+		node->value = ft_strdup(msh->pwd);
+	}
+}
+
 void		builtin_cd(t_minishell *msh)
 {
+	char	*buf;
+
+	buf = NULL;
 	msh->argc = get_argc(msh->args);
 	if (msh->argc > 2)
 		ft_printf("usage: cd [optional argument]\n");
 	else if (!msh->args[1])
 	{
-		get_home(msh, msh->env);
+		msh->home = get_envlst_val(msh, "HOME")->value;
 		if (chdir(msh->home))
 			ft_dprintf(2, "Error chdir\n");
+		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
+		get_envlst_val(msh, "PWD")->value = msh->home;
+		msh->pwd = get_envlst_val(msh, "PWD")->value;
+		print_envlst(msh->env_lst);
 	}
 	else if (!ft_strcmp(msh->args[1], "-"))
 	{
-		get_oldpwd(msh, msh->env);
+		msh->oldpwd = get_envlst_val(msh, "OLDPWD")->value;
+		msh->pwd = get_envlst_val(msh, "PWD")->value;
 		if (chdir(msh->oldpwd))
 			ft_dprintf(2, "Error chdir\n");
+		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
+		get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
+		print_envlst(msh->env_lst);
 	}
 	else
 	{
+		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
 		if (chdir(msh->args[1]))
 			ft_dprintf(2, "Error chdir\n");
+		get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
+		msh->pwd = get_envlst_val(msh, "PWD")->value;
+		print_envlst(msh->env_lst);
 	}
-	msh->argc = 0;
-	msh->cmd_path = NULL;
 }
 
 void		builtin_exit(t_minishell *msh)
@@ -249,7 +258,7 @@ int		is_builtin(t_minishell *msh, char *cmd_name)
 	return (-1);
 }
 
-int		exec_cmd(t_minishell *msh, char **env)
+int		exec_cmd(t_minishell *msh)
 {
 	int		i;
 	int		pos;
@@ -261,13 +270,15 @@ int		exec_cmd(t_minishell *msh, char **env)
 		return (0);
 	while (msh->cmds[i])
 	{
+		msh->argc = 0;
+		msh->cmd_path = NULL;
 		msh->args = ft_split_whitespaces(msh->cmds[i]);
 		if (*msh->args)
 		{
 			if (ft_strchr(msh->args[0], '/'))
 				msh->cmd_path = msh->args[0];
 			else
-				find_path_cmd(msh, env);
+				find_path_cmd(msh);
 			if ((pos = is_builtin(msh, msh->args[0])) != -1)
 				(msh->funct_tab[pos])(msh);
 			else
@@ -277,41 +288,86 @@ int		exec_cmd(t_minishell *msh, char **env)
 	}
 	return (1);
 }
-/*
-void	exec_cmd(t_minishell *msh)
-{
-	int		pos;	
 
+
+void	add_envlist(t_envlst **env_lst, char **tab_env)
+{
+	t_envlst	*node;
+	t_envlst	*tmp;
+
+	node = (t_envlst*)malloc(sizeof(t_envlst));
+	node->next = NULL;
+	node->name = ft_strdup(tab_env[0]);
+	node->value = ft_strdup(tab_env[1]);
+	if (!*env_lst)
+		*env_lst = node;
+	else
+	{
+		tmp = *env_lst;
+		while (tmp->next)
+			tmp = tmp->next;
+		tmp->next = node;
+	}
 }
-*/
+
+void	set_envlist(t_minishell *msh, char **env)
+{
+	char	**tab_env;
+
+	tab_env = NULL;
+	while (*env)
+	{
+		tab_env = ft_strsplit(*env, '=');
+		if (*tab_env)
+			add_envlist(&msh->env_lst, tab_env);
+		free_dbl(&tab_env);
+		env++;
+	}
+}
+
+void	init_msh(t_minishell *msh, char **env)
+{
+	msh->cmds = NULL;
+	msh->cmd_path = NULL;
+	msh->args = NULL;
+	msh->argc = 0;
+	msh->home = NULL;
+	msh->oldpwd = NULL;
+	msh->env_lst = NULL;
+	msh->env = env;	
+	set_builtin(msh);
+	set_envlist(msh, env);
+	set_oldpwd(msh);
+	print_envlst(msh->env_lst);
+}
+
+void	prompt_dir(void)
+{
+	char	*cwd;
+	char	*buf;
+
+	buf = NULL;
+	cwd = getcwd(buf, CWD_BUF_SIZE);
+	if (cwd)
+		ft_putstr(cwd);
+	ft_putstr(">>> ");
+}
+
 int		main(int ac, char *av[], char *env[])
 {
 	t_minishell		msh;
-	msh.env = env;
-	msh.cmds = NULL;
-	msh.cmd_path = NULL;
-	msh.args = NULL;
-	msh.argc = 0;
-	msh.home = NULL;
-	msh.oldpwd = NULL;
-
-	print_2d(env);
-	set_builtin(&msh);
+	
+	init_msh(&msh, env);	
 	signal(SIGINT, sigint_handler);
 	while (IS_TRUE)
 	{
 		if (sigsetjmp(sig_env, 1) == 1337)
 			ft_putchar('\n');
 		jmp_flag = 1;
-		ft_putstr(">>> ");
-		//prompt_dir();
+		prompt_dir();
 		read_cmd(&msh);
-		if (!exec_cmd(&msh, env))
+		if (!exec_cmd(&msh))
 			continue ;
-		printf("odlpwd = %s\n", msh.oldpwd);
-		//print_2d(msh.args);
-		//printf("cmd_path = %s\n", msh.cmd_path); 
-		//msh.cmd_path = NULL;
 		free_msh(&msh);
 	}
 	return (0);

@@ -12,7 +12,7 @@
 # include <stdio.h> //!!!!!!
 
 # define IS_TRUE 1
-# define CWD_BUF_SIZE 1024
+# define CWD_BUF_SIZE 2048 
 # define BUILTIN_NUM 2
 
 static sigjmp_buf 				sig_env;
@@ -22,20 +22,28 @@ typedef struct s_minishell	t_minishell;
 
 typedef void (*builtin_func) (t_minishell *);
 
+typedef struct		s_envlst
+{
+	char			*name;
+	char			*value;
+	struct s_envlst	*next;
+}					t_envlst;
+
 struct		 		s_minishell
 {
 	int				argc;
 	char			*line;
 	char			**args;
 	char			**cmds;
+	char			**env;
 	char			*cmd_path;
 	char			*home;
 	char			*oldpwd;
-	char			**env;
+	char			*pwd;
 	char			**builtin_name;
+	t_envlst		*env_lst;
 	builtin_func	*funct_tab;
 };
-
 
 void		builtin_cd(t_minishell *msh);
 void		builtin_exit(t_minishell *msh);
