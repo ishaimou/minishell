@@ -188,22 +188,10 @@ t_envlst	*get_envlst_val(t_minishell *msh, char *name)
 	return (NULL);
 }
 
-void	set_oldpwd(t_minishell *msh)
-{
-	t_envlst	*node;
-
-	node = get_envlst_val(msh, "OLDPWD");
-	msh->pwd = get_envlst_val(msh, "PWD")->value;
-	if (node)
-	{
-		free(node->value);
-		node->value = ft_strdup(msh->pwd);
-	}
-}
-
 void		builtin_cd(t_minishell *msh)
 {
 	char	*buf;
+	char	*tmp;
 
 	buf = NULL;
 	msh->argc = get_argc(msh->args);
@@ -214,10 +202,15 @@ void		builtin_cd(t_minishell *msh)
 		msh->home = get_envlst_val(msh, "HOME")->value;
 		if (chdir(msh->home))
 			ft_dprintf(2, "Error chdir\n");
-		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
-		get_envlst_val(msh, "PWD")->value = msh->home;
-		msh->pwd = get_envlst_val(msh, "PWD")->value;
-		print_envlst(msh->env_lst);
+		else
+		{
+			tmp = get_envlst_val(msh, "PWD")->value;
+			free(get_envlst_val(msh, "OLDPWD")->value);
+			get_envlst_val(msh, "OLDPWD")->value = ft_strdup(tmp);
+			free(tmp);
+			tmp = NULL;
+			get_envlst_val(msh, "PWD")->value = ft_strdup(msh->home);
+		}
 	}
 	else if (!ft_strcmp(msh->args[1], "-"))
 	{
@@ -225,18 +218,27 @@ void		builtin_cd(t_minishell *msh)
 		msh->pwd = get_envlst_val(msh, "PWD")->value;
 		if (chdir(msh->oldpwd))
 			ft_dprintf(2, "Error chdir\n");
-		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
-		get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
-		print_envlst(msh->env_lst);
+		else
+		{
+			free(get_envlst_val(msh, "OLDPWD")->value);
+			get_envlst_val(msh, "OLDPWD")->value = ft_strdup(msh->pwd);
+			free(get_envlst_val(msh, "PWD")->value);
+			get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
+		}
 	}
 	else
 	{
-		get_envlst_val(msh, "OLDPWD")->value = msh->pwd;
 		if (chdir(msh->args[1]))
 			ft_dprintf(2, "Error chdir\n");
-		get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
-		msh->pwd = get_envlst_val(msh, "PWD")->value;
-		print_envlst(msh->env_lst);
+		else
+		{
+			tmp = get_envlst_val(msh, "PWD")->value;
+			free(get_envlst_val(msh, "OLDPWD")->value);
+			get_envlst_val(msh, "OLDPWD")->value = ft_strdup(tmp);
+			free(tmp);
+			tmp = NULL;
+			get_envlst_val(msh, "PWD")->value = getcwd(buf, CWD_BUF_SIZE);
+		}
 	}
 }
 
@@ -325,6 +327,20 @@ void	set_envlist(t_minishell *msh, char **env)
 	}
 }
 
+void	set_oldpwd(t_minishell *msh)
+{
+	t_envlst	*node;
+
+	node = get_envlst_val(msh, "OLDPWD");
+	msh->pwd = get_envlst_val(msh, "PWD")->value;
+	if (node)
+	{
+		free(node->value);
+		node->value = ft_strdup(msh->pwd);
+		msh->oldpwd = get_envlst_val(msh, "OLDPWD")->value;
+	}
+}
+
 void	init_msh(t_minishell *msh, char **env)
 {
 	msh->cmds = NULL;
@@ -332,13 +348,13 @@ void	init_msh(t_minishell *msh, char **env)
 	msh->args = NULL;
 	msh->argc = 0;
 	msh->home = NULL;
+	msh->pwd = NULL;
 	msh->oldpwd = NULL;
 	msh->env_lst = NULL;
 	msh->env = env;	
 	set_builtin(msh);
 	set_envlist(msh, env);
 	set_oldpwd(msh);
-	print_envlst(msh->env_lst);
 }
 
 void	prompt_dir(void)
