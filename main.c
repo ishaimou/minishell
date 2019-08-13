@@ -37,6 +37,19 @@ void	print_envlst(t_envlst	*env_lst)
 	}
 }
 
+char	*ft_strjoin_sep(const char *s1, const char *s2, char *sep)
+{
+	char	*strsep;
+	char	*str;
+
+	strsep = NULL;
+	str = NULL;
+	strsep = ft_strjoin(s1, sep);
+	str = ft_strjoin(strsep, s2);
+	free(strsep);
+	return (str);
+}
+
 void	add_envlst(t_envlst **env_lst, char **tab_env)
 {
 	t_envlst	*node;
@@ -57,7 +70,7 @@ void	add_envlst(t_envlst **env_lst, char **tab_env)
 	}
 }
 
-void	set_envlist(t_minishell *msh, char **env)
+void	set_envlst(t_minishell *msh, char **env)
 {
 	char	**tab_env;
 
@@ -72,16 +85,39 @@ void	set_envlist(t_minishell *msh, char **env)
 	}
 }
 
-char	*ft_strjoin_sep(const char *s1, const char *s2, char *sep)
+int		envlst_size(t_envlst *begin_list)
 {
-	char	*strsep;
-	char	*str;
+	int		i;
 
-	strsep = NULL;
-	str = NULL;
-	strsep = ft_strjoin(s1, sep);
-	str = ft_strjoin(strsep, s2);
-	return (str);
+	i = 0;
+	while (begin_list)
+	{
+		begin_list = begin_list->next;
+		i++;
+	}
+	return (i);
+}
+
+char	**set_env(t_minishell *msh)
+{
+	t_envlst	*env_lst;
+	char		**environ;
+	char		*str;
+	int			i;
+	
+	i = 0;
+	env_lst = msh->env_lst;
+	environ = (char**)malloc(sizeof(char*) * (envlst_size(msh->env_lst) + 1));
+	while (env_lst)
+	{
+		str = ft_strjoin_sep(env_lst->name, env_lst->value, "=");
+		environ[i] = ft_strdup(str);
+		free(str);
+		env_lst = env_lst->next;
+		i++;
+	}
+	environ[i] = NULL;
+	return (environ);
 }
 
 void	read_cmd(t_minishell *msh)
@@ -108,7 +144,7 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 	while (paths[i])
 	{
 		if (!(dirp = opendir(paths[i])))
-			ft_dprintf(2, "opendir error\n");
+			break;
 		while ((res = readdir(dirp)))
 		{
 			if (!ft_strcmp(res->d_name, msh->args[0]))
@@ -117,9 +153,9 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 				break ;
 			}
 		}
-		if (msh->cmd_path)
-			break;
 		(void)closedir(dirp);
+		if (msh->cmd_path)
+			break ;
 		i++;
 	}
 }
@@ -133,16 +169,22 @@ void	find_path_cmd(t_minishell *msh)
 	path_env = NULL;
 	paths = NULL;
 	i = 0;
-	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
-		i++;
-	if (msh->env[i])
+	if (ft_strchr(msh->args[0], '/'))
+		msh->cmd_path = msh->args[0];
+	else
 	{
-		path_env = ft_strsplit(msh->env[i], '=');
-		if (*path_env)
-			paths = ft_strsplit(*(path_env + 1), ':');
+		msh->env = set_env(msh);
+		while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
+			i++;
+		if (msh->env[i])
+		{
+			path_env = ft_strsplit(msh->env[i], '=');
+			if (*path_env)
+				paths = ft_strsplit(*(path_env + 1), ':');
+		}
+		if (paths && *paths)
+			get_cmd_path(msh, paths);
 	}
-	if (*paths)
-		get_cmd_path(msh, paths);
 }
 
 void	launch_cmd(t_minishell *msh)
@@ -159,9 +201,15 @@ void	launch_cmd(t_minishell *msh)
 	}
 	else if (cpid == 0)
 	{
+		msh->env = set_env(msh);
 		if (execve(msh->cmd_path, msh->args, msh->env) < 0)
 		{
-			ft_dprintf(2, "Error cmd\n");
+			/*if (ft_strchr(msh->args[0], '/'))
+				ft_dprintf(2, "minishell: no such file or directory: %s\n", msh->args[0]);
+			else
+				ft_dprintf(2, "minishell: command not found: %s\n", msh->args[0]);
+			*/
+			ft_dprintf(2, "Error cmd\n"); //!!!!
 			free_msh(msh);
 			exit(EXIT_FAILURE);
 		}
@@ -263,6 +311,7 @@ void		builtin_cd(t_minishell *msh)
 			ft_dprintf(2, "Error chdir\n");
 		else
 		{
+			ft_printf("%s\n", msh->oldpwd);
 			free(get_envlst_val(msh, "OLDPWD")->value);
 			get_envlst_val(msh, "OLDPWD")->value = ft_strdup(msh->pwd);
 			free(get_envlst_val(msh, "PWD")->value);
@@ -418,6 +467,7 @@ int		is_builtin(t_minishell *msh, char *cmd_name)
 	return (-1);
 }
 
+
 int		exec_cmd(t_minishell *msh)
 {
 	int		i;
@@ -435,14 +485,13 @@ int		exec_cmd(t_minishell *msh)
 		msh->args = ft_split_whitespaces(msh->cmds[i]);
 		if (*msh->args)
 		{
-			if (ft_strchr(msh->args[0], '/'))
-				msh->cmd_path = msh->args[0];
-			else
-				find_path_cmd(msh);
 			if ((pos = is_builtin(msh, msh->args[0])) != -1)
 				(msh->funct_tab[pos])(msh);
 			else
+			{
+				find_path_cmd(msh);
 				launch_cmd(msh);
+			}
 		}
 		i++;
 	}
@@ -476,7 +525,7 @@ void	init_msh(t_minishell *msh, char **env)
 	msh->env_lst = NULL;
 	msh->env = env;	
 	set_builtin(msh);
-	set_envlist(msh, env);
+	set_envlst(msh, env);
 	set_oldpwd(msh);
 }
 
@@ -488,8 +537,12 @@ void	prompt_dir(void)
 	buf = NULL;
 	cwd = getcwd(buf, CWD_BUF_SIZE);
 	if (cwd)
+	{
+		ft_putstr("\033[1;32m");
 		ft_putstr(cwd);
-	ft_putstr(">>> ");
+		ft_putstr("\033[m");
+	}
+	ft_putstr("$> ");
 }
 
 int		main(int ac, char *av[], char *env[])
