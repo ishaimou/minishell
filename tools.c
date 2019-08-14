@@ -38,19 +38,21 @@ int		is_builtin(t_minishell *msh, char *cmd_name)
 	return (-1);
 }
 
-void	prompt_dir(void)
+void	prompt_dir(t_minishell *msh)
 {
-	char	*cwd;
-	char	*buf;
-
-	buf = NULL;
-	cwd = getcwd(buf, CWD_BUF_SIZE);
-	if (cwd)
+	msh->user = get_envlst_val(msh, "USER")->value;
+	msh->pwd = get_envlst_val(msh, "PWD")->value;
+	if (msh->user)
 	{
 		ft_putstr("\033[1;32m");
-		ft_putstr(cwd);
-		ft_putstr("\033[m");
+		ft_putstr(msh->user);
+		ft_putstr("\033[m:");
+	}
+	if (msh->pwd)
+	{
+		ft_putstr("\033[1;36m");
+		ft_putstr(msh->pwd);
+		ft_putstr("\033[m ");
 	}
 	ft_putstr("$> ");
 }
-

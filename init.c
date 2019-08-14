@@ -34,6 +34,15 @@ static void	set_oldpwd(t_minishell *msh)
 	}
 }
 
+void	init_qparam(t_minishell *msh)
+{
+	msh->quoted = 0;
+	msh->quote = 0;
+	msh->dquote = 0;
+	msh->qflag = 0;
+	msh->dflag = 0;
+}
+
 void	init_msh(t_minishell *msh, int ac, char **av, char **env)
 {
 	(void)ac;
@@ -43,14 +52,15 @@ void	init_msh(t_minishell *msh, int ac, char **av, char **env)
 	msh->cmd_path = NULL;
 	msh->args = NULL;
 	msh->argc = 0;
+	msh->sflag = 0;
+	msh->user = NULL;
 	msh->home = NULL;
 	msh->pwd = NULL;
 	msh->oldpwd = NULL;
 	msh->env_lst = NULL;
 	msh->env = env;	
+	init_qparam(msh);
 	set_builtin(msh);
 	set_envlst(msh, env);
 	set_oldpwd(msh);
 }
-
-

@@ -27,51 +27,50 @@ void	sigint_handler(int signo)
 	siglongjmp(sig_env, 1337);
 }
 
-int		quotes(char *line)
+int		quotes(t_minishell *msh, char *line)
 {
 	int		i;
-	static int	quote;
-	static int	dquote;
-	static int	qflag;
-	static int	dflag;
 
 	i = 0;
 	while (line[i])
 	{	
-		if (line[i] == '\'' && !qflag && !dquote)
+		if (line[i] == '\'' && !msh->qflag && !msh->dquote)
 		{
-			quote++;
-			qflag = 1;
+			msh->quote++;
+			msh->qflag = 1;
+			msh->sflag = 1;
 		}
-		else if (line[i] == '\'' && qflag)
+		else if (line[i] == '\'' && msh->qflag)
 		{
-			quote--;
-			qflag = 0;
+			msh->quote--;
+			msh->qflag = 0;
 		}
-		else if (line[i] == '\"' && !dflag && !quote)
+		else if (line[i] == '\"' && !msh->dflag && !msh->quote)
 		{
-				dquote++;
-				dflag = 1;
+				msh->dquote++;
+				msh->dflag = 1;
+				msh->sflag = 1;
 		}
-		else if (line[i] == '\"' && dflag)
+		else if (line[i] == '\"' && msh->dflag)
 		{
-			dquote--;
-			dflag = 0;
+			msh->dquote--;
+			msh->dflag = 0;
 		}
 		i++;
 	}
-	if (quote)
+	if (msh->quote)
 		return (1);
-	else if (dquote)
+	else if (msh->dquote)
 		return (2);
 	else
 		return (0);
 }
 
-void	read_line(t_minishell *msh)
+char	*read_line(t_minishell *msh)
 {
 	char	*line;
-
+	char	*tmp;
+	
 	if (get_next_line(0, &line) < 0)
 	{
 		ft_dprintf(2, "Error gnl\n");
@@ -79,21 +78,32 @@ void	read_line(t_minishell *msh)
 		line = NULL;
 		exit(EXIT_FAILURE);
 	}
-	msh->line = line;
+	if (msh->quoted)
+	{
+		tmp = msh->line;
+		msh->line = ft_strjoin_sep(msh->line, line, "\n");
+		free(tmp);
+	}
+	else
+		msh->line = line;
+	return (line);
 }
 
 void	read_cmd(t_minishell *msh)
 {
 	int		q;
+	char	*line;
 
-	read_line(msh);
-	q = quotes(msh->line);
+	line = read_line(msh);
+	q = quotes(msh, line);
+	msh->quoted = q;
 	if (!q)
 		return ;
 	if (q == 1)
-		ft_putstr("\nquote> ");
+		ft_putstr("quote> ");
 	else if (q == 2)
-		ft_putstr("\ndquote> ");
+		ft_putstr("dquote> ");
+	//free(line);
 	read_cmd(msh);
 }
 
@@ -150,6 +160,23 @@ void	find_path_cmd(t_minishell *msh)
 	}
 }
 
+void	print_chars(char *str)
+{
+	int		i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\n')
+			ft_putstr("\\n");
+		else if (str[i] == '\t')
+			ft_putstr("\\t");
+		else
+			ft_putchar(str[i]);
+		i++;
+	}
+}
+
 void	launch_cmd(t_minishell *msh)
 {
 	pid_t	cpid;
@@ -167,7 +194,8 @@ void	launch_cmd(t_minishell *msh)
 		msh->env = set_env(msh);
 		if (execve(msh->cmd_path, msh->args, msh->env) < 0)
 		{
-			ft_dprintf(2, "%s: command not found\n", msh->args[0]);
+			print_chars(msh->args[0]);
+			ft_putstr(": command not found\n");
 			free_msh(msh);
 			exit(EXIT_FAILURE);
 		}
@@ -215,6 +243,37 @@ int		parse_exec_cmd(t_minishell *msh)
 	return (1);
 }
 
+void	simplify_cmd(t_minishell *msh)
+{
+	char	*line;
+	char	*str;
+	
+	str = NULL;
+	line = msh->line;
+	while (*line)
+	{
+		while (*line && *line != '\'' && *line != '\"')
+				str = ft_str_pushback(str, *line++);
+		if (*line == '\'')
+		{
+			while (*line++ && *line != '\'')
+				str = ft_str_pushback(str, *line);
+		}
+		if (*line == '\"')
+		{
+			while (*line++ && *line != '\"')
+				str = ft_str_pushback(str, *line);
+		}
+		if (*line)
+			line++;
+	}
+	if (str)
+	{
+		free(msh->line);
+		msh->line = str;
+	}
+}
+
 int		main(int ac, char *av[], char *env[])
 {
 	t_minishell		msh;
@@ -224,10 +283,16 @@ int		main(int ac, char *av[], char *env[])
 	while (IS_TRUE)
 	{
 		if (sigsetjmp(sig_env, 1) == 1337)
+		{
+			init_qparam(&msh);
 			ft_putchar('\n');
+		}
 		jmp_flag = 1;
-		prompt_dir();
+		msh.sflag = 0;
+		prompt_dir(&msh);
 		read_cmd(&msh);
+		if (msh.sflag)
+			simplify_cmd(&msh);
 		if (!parse_exec_cmd(&msh))
 			continue ;
 		free_msh(&msh);

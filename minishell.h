@@ -31,12 +31,19 @@ typedef struct		s_envlst
 
 struct		 		s_minishell
 {
+	int				sflag;
+	int				qflag;
+	int				dflag;
+	int				quote;
+	int				dquote;
+	int				quoted;
 	int				argc;
 	char			*line;
 	char			**args;
 	char			**cmds;
 	char			**env;
 	char			*cmd_path;
+	char			*user;
 	char			*home;
 	char			*oldpwd;
 	char			*pwd;
@@ -53,7 +60,7 @@ void		builtin_setenv(t_minishell *msh);
 void		builtin_unsetenv(t_minishell *msh);
 void		init_msh(t_minishell *msh, int ac, char **av, char **env);
 char		**set_env(t_minishell *msh);
-void		prompt_dir(void);
+void		prompt_dir(t_minishell *msh);
 int			get_argc(char **args);
 int			is_builtin(t_minishell *msh, char *cmd_name);
 t_envlst	*get_envlst_val(t_minishell *msh, char *name);
@@ -62,6 +69,7 @@ void		set_envlst(t_minishell *msh, char **env);
 char		*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
 void		free_msh(t_minishell *msh);
 void		free_dbl(char ***tab);
+void		init_qparam(t_minishell *msh);
 
 
 #endif
