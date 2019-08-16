@@ -27,7 +27,7 @@ void	sigint_handler(int signo)
 	siglongjmp(sig_env, 1337);
 }
 
-int		quotes(t_minishell *msh, char *line)
+int		handle_quotes(t_minishell *msh, char *line)
 {
 	int		i;
 
@@ -95,7 +95,7 @@ void	read_cmd(t_minishell *msh)
 	char	*line;
 
 	line = read_line(msh);
-	q = quotes(msh, line);
+	q = handle_quotes(msh, line);
 	msh->quoted = q;
 	if (!q)
 		return ;
@@ -122,6 +122,7 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 		{
 			if (!ft_strcmp(res->d_name, msh->args[0]))
 			{
+				rm_trailing_slash(&paths[i]);
 				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
 				break ;
 			}
@@ -210,10 +211,35 @@ void	launch_cmd(t_minishell *msh)
 	}
 }
 
+void	handle_exp(t_minishell *msh)
+{
+	char	*ptr;
+	char	*tmp;
+	int		i;
+
+	i = 0;
+	msh->home = get_envlst_val(msh, "HOME")->value;
+	while (msh->args[i])
+	{
+		//if (ft_strchr(msh->args[i], '='))
+		//	set_value(msh, &msh->args[i]);
+		if (msh->args[i][0] == '~')
+		{
+			tmp = msh->args[i];
+			msh->args[i] = ft_strjoin(msh->home, msh->args[i] + 1);
+			free(tmp);
+		}
+		//while ((ptr = ft_strchr(msh->args[i], '$')))
+		//	get_value(msh, &msh->args[i], ptr);
+		i++;
+	}
+}
+
 void	exec_cmd(t_minishell *msh)
 {
 	int		pos;
 	
+	handle_exp(msh);
 	if ((pos = is_builtin(msh, msh->args[0])) != -1)
 		(msh->funct_tab[pos])(msh);
 	else
@@ -228,6 +254,8 @@ int		parse_exec_cmd(t_minishell *msh)
 	int		i;
 
 	i = 0;
+	if (msh->sflag)
+		simplify_cmd(msh);
 	msh->cmds = ft_strsplit(msh->line, ';');
 	if (!msh->cmds[0])
 		return (0);
@@ -291,8 +319,6 @@ int		main(int ac, char *av[], char *env[])
 		msh.sflag = 0;
 		prompt_dir(&msh);
 		read_cmd(&msh);
-		if (msh.sflag)
-			simplify_cmd(&msh);
 		if (!parse_exec_cmd(&msh))
 			continue ;
 		free_msh(&msh);

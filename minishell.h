@@ -29,6 +29,12 @@ typedef struct		s_envlst
 	struct s_envlst	*next;
 }					t_envlst;
 
+typedef struct		s_varlst
+{
+	char			*var_name;
+	int				*var_value;
+}					t_varlst;
+
 struct		 		s_minishell
 {
 	int				sflag;
@@ -49,6 +55,7 @@ struct		 		s_minishell
 	char			*pwd;
 	char			**builtin_name;
 	t_envlst		*env_lst;
+	t_varlst		*var_lst;
 	builtin_func	*funct_tab;
 };
 
@@ -70,6 +77,8 @@ char		*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
 void		free_msh(t_minishell *msh);
 void		free_dbl(char ***tab);
 void		init_qparam(t_minishell *msh);
-
+void		rm_trailing_slash(char **path);
+void		simplify_cmd(t_minishell *msh);
+char		*home_to_tild(t_minishell *msh, char *str);
 
 #endif

@@ -32,6 +32,7 @@ void		builtin_cd(t_minishell *msh)
 			ft_dprintf(2, "Error chdir\n");
 		else
 		{
+			msh->oldpwd = home_to_tild(msh, msh->oldpwd);
 			ft_printf("%s\n", msh->oldpwd);
 			free(get_envlst_val(msh, "OLDPWD")->value);
 			get_envlst_val(msh, "OLDPWD")->value = ft_strdup(msh->pwd);
@@ -74,7 +75,7 @@ void	builtin_env(t_minishell *msh)
 {
 	t_envlst	*env_lst;
 	int			argc;
-	
+
 	argc = get_argc(msh->args);
 	if (argc > 1)
 	{
@@ -94,7 +95,7 @@ void	builtin_setenv(t_minishell *msh)
 	t_envlst	*env_lst;
 	char		**args;
 	int			argc;
-	
+
 
 	if ((argc = get_argc(msh->args) != 3))
 	{
