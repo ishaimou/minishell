@@ -5,6 +5,7 @@
 # include <unistd.h>
 # include <dirent.h>
 # include <sys/wait.h>
+# include <sys/stat.h>
 # include <signal.h>
 # include <setjmp.h>
 # include "libft.h"
@@ -12,6 +13,9 @@
 # include <stdio.h> //!!!!!!
 
 # define IS_TRUE 1
+# define NO_FILE_DIR 1
+# define NO_PERM 2
+# define NO_FOUND 3
 # define CWD_BUF_SIZE 2048 
 # define BUILTIN_NUM 6 
 
@@ -74,5 +78,9 @@ void		init_qparam(t_minishell *msh);
 void		rm_trailing_slash(char **path);
 void		simplify_cmd(t_minishell *msh);
 char		*home_to_tild(t_minishell *msh, char *str);
-
+void		simplify_cmd(t_minishell *msh);
+void		handle_exp(t_minishell *msh);
+void		get_value(t_minishell *msh, char **arg, char *ptr);
+int			set_varlst(t_minishell *msh, char *arg);
+void		print_chars(char *str);
 #endif

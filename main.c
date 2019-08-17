@@ -107,74 +107,62 @@ void	read_cmd(t_minishell *msh)
 	read_cmd(msh);
 }
 
-void	get_cmd_path(t_minishell *msh, char **paths, int ind)
+void	error_fork(t_minishell *msh)
 {
-	int		i;
-	DIR		*dirp;
-	struct dirent	*res;
-
-	i = 0;
-	while (paths[i])
-	{
-		if (!(dirp = opendir(paths[i])))
-			break;
-		while ((res = readdir(dirp)))
-		{
-			if (!ft_strcmp(res->d_name, msh->args[ind]))
-			{
-				rm_trailing_slash(&paths[i]);
-				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
-				break ;
-			}
-		}
-		(void)closedir(dirp);
-		if (msh->cmd_path)
-			break ;
-		i++;
-	}
+	ft_dprintf(2, "Error fork\n");
+	free_msh(msh);
+	exit(EXIT_FAILURE);
 }
 
-void	find_path_cmd(t_minishell *msh, int ind)
+int		ft_error(t_minishell *msh, int type)
 {
-	char			**path_env;
-	char			**paths;
-	int				i;
-
-	path_env = NULL;
-	paths = NULL;
-	i = 0;
-	if (ft_strchr(msh->args[ind], '/'))
-		msh->cmd_path = msh->args[ind];
-	else
+	if (type == NO_FILE_DIR)
 	{
-		msh->env = set_env(msh);
-		while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
-			i++;
-		if (msh->env[i])
-		{
-			path_env = ft_strsplit(msh->env[i], '=');
-			if (*path_env)
-				paths = ft_strsplit(*(path_env + 1), ':');
-		}
-		if (paths && *paths)
-			get_cmd_path(msh, paths, ind);
+		print_chars(msh->cmd_path);
+		ft_putstr(": no such file or directory\n");
 	}
+	else if (type == NO_PERM)
+	{
+		print_chars(msh->cmd_path);
+		ft_putstr(": permission denied\n");
+	}
+	else if (type == NO_FOUND)
+	{
+		print_chars(msh->cmd_path);
+		ft_putstr(": command not found\n");
+	}
+	return (1);
 }
 
-void	print_chars(char *str)
+int		check_err(t_minishell *msh, int mode)
 {
-	int		i;
+	struct stat	file_stat;
 
-	i = 0;
-	while (str[i])
+	if (mode == NO_FOUND)
+		if (stat(msh->cmd_path, &file_stat))
+			return (ft_error(msh, NO_FOUND));
+	if (access(msh->cmd_path, F_OK))
+		return (ft_error(msh, NO_FILE_DIR));
+	else if (access(msh->cmd_path, X_OK))
+		return (ft_error(msh, NO_PERM));
+	else if (!stat(msh->cmd_path, &file_stat))
+		if (!S_ISREG(file_stat.st_mode))
+			return (ft_error(msh, NO_PERM));
+	return (0);
+}
+
+void	ft_execve(t_minishell *msh, int ind)
+{
+
+	msh->env = set_env(msh);
+	if (check_err(msh, NO_FOUND))
+		exit(EXIT_FAILURE);
+	if  (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
 	{
-		if (str[i] == '\n')
-			ft_putstr("\\n");
-		else if (str[i] == '\t')
-			ft_putstr("\\t");
-		else
-			ft_putchar(str[i]);
-		i++;
+		print_chars(msh->cmd_path);
+		ft_putstr(": Error execve\n");
+		free_msh(msh);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -185,22 +173,9 @@ void	launch_cmd(t_minishell *msh, int ind)
 	int		stat_loc;
 
 	if ((cpid = fork()) < 0)
-	{
-		ft_dprintf(2, "Error fork\n");
-		free_msh(msh);
-		exit(EXIT_FAILURE);
-	}
+		error_fork(msh);
 	else if (cpid == 0)
-	{
-		msh->env = set_env(msh);
-		if (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
-		{
-			print_chars(msh->args[ind]);
-			ft_putstr(": command not found\n");
-			free_msh(msh);
-			exit(EXIT_FAILURE);
-		}
-	}
+		ft_execve(msh, ind);
 	else
 	{
 		if ((wpid = waitpid(cpid, &stat_loc, WUNTRACED)) < 0)
@@ -211,107 +186,83 @@ void	launch_cmd(t_minishell *msh, int ind)
 	}
 }
 
-int		set_varlst(t_minishell *msh, char *arg)
-{
-	t_diclst	*node;
-	char		**tab_var;
-	int			i;
 
-	if (arg[0] == '=')
-		return (0);
+void	get_cmd_path(t_minishell *msh, char **paths)
+{
+	int		i;
+	DIR		*dirp;
+	struct dirent	*res;
+
 	i = 0;
-	while (arg[i] && arg[i] != '=' && ft_isalnum(arg[i]))
-		i++;
-	if (arg[i] != '=')
-		return (0);
-	tab_var = (char**)malloc(sizeof(char*) * 3);
-	tab_var[0] = ft_strndup(arg, i);
-	tab_var[1] = ft_strdup(arg + i + 1);
-	tab_var[2] = NULL;
-	node = get_diclst_val(msh, tab_var[0], 1);
-	if (node)
+	while (paths[i])
 	{
-		free(node->value);
-		node->value = ft_strdup(tab_var[1]);
-	}
-	else
-		add_diclst(&msh->var_lst, tab_var);
-	free_dbl(&tab_var);
-	return (1);
-}
-
-void	get_value(t_minishell *msh, char **arg, char *ptr)
-{
-	t_diclst	*node;
-	char		**tab_dollar;
-	char		*str;
-	char		*tmp;
-	int			i;
-	int			len;
-
-	i = ptr - *arg;
-	str = ft_strndup(*arg, i);
-	tab_dollar = ft_strsplit(ptr, '$');
-	if (*tab_dollar)
-	{
-		i = -1;
-		len = get_argc(tab_dollar);
-		while (++i < len)
+		if (!(dirp = opendir(paths[i])))
 		{
-			if ((node = get_diclst_val(msh, tab_dollar[i], 1)) ||
-				 (node = get_diclst_val(msh, tab_dollar[i], 0)))
+			i++;
+			continue ;
+		}
+		while ((res = readdir(dirp)))
+		{
+			if (!ft_strcmp(res->d_name, msh->cmd_path))
 			{
-				tmp = str;
-				str = ft_strjoin(str, node->value);
-				free(tmp);
+				rm_trailing_slash(&paths[i]);
+				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
+				(void)closedir(dirp);
+				return ;
 			}
 		}
-	}
-	free(tab_dollar);
-	free(*arg);
-	*arg = str;
-}
-
-void	handle_exp(t_minishell *msh)
-{
-	char	*ptr;
-	char	*tmp;
-	int		i;
-
-	i = 0;
-	msh->home = get_diclst_val(msh, "HOME", 0)->value;
-	while (msh->args[i])
-	{
-		while ((ptr = ft_strchr(msh->args[i], '$')))
-			get_value(msh, &msh->args[i], ptr);
-		if (msh->args[i][0] == '~')
-		{
-			tmp = msh->args[i];
-			msh->args[i] = ft_strjoin(msh->home, msh->args[i] + 1);
-			free(tmp);
-		}
+		(void)closedir(dirp);
 		i++;
 	}
 }
 
-void	exec_cmd(t_minishell *msh)
+int		find_path_cmd(t_minishell *msh, int ind)
+{
+	char			**path_env;
+	char			**paths;
+	int				i;
+
+	path_env = NULL;
+	paths = NULL;
+	i = 0;
+	msh->cmd_path = msh->args[ind];
+	if (ft_strchr(msh->cmd_path, '/'))
+		return (check_err(msh, 0));
+	msh->env = set_env(msh);
+	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
+		i++;
+	if (msh->env[i])
+	{
+		path_env = ft_strsplit(msh->env[i], '=');
+		if (*path_env)
+			paths = ft_strsplit(*(path_env + 1), ':');
+	}
+	if (paths && *paths)
+		get_cmd_path(msh, paths);
+	return (0);
+}
+
+int		exec_cmd(t_minishell *msh)
 {
 	int		pos;
 	int		ind;
 
 	ind = 0;
-	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') && set_varlst(msh, msh->args[ind]))
+	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
+		&& set_varlst(msh, msh->args[ind]))
 		ind++;
 	handle_exp(msh);
 	if (!msh->args[ind] || !msh->args[ind][0])
-		return ;
+		return (1) ;
 	if ((pos = is_builtin(msh, msh->args[ind])) != -1)
 		(msh->funct_tab[pos])(msh);
 	else
 	{
-		find_path_cmd(msh, ind);
+		if (find_path_cmd(msh, ind))
+			return (1);
 		launch_cmd(msh, ind);
 	}
+	return (0);
 }
 
 int		parse_exec_cmd(t_minishell *msh)
@@ -323,48 +274,17 @@ int		parse_exec_cmd(t_minishell *msh)
 		simplify_cmd(msh);
 	msh->cmds = ft_strsplit(msh->line, ';');
 	if (!msh->cmds[0])
-		return (0);
+		return (1);
 	while (msh->cmds[i])
 	{
 		msh->argc = 0;
 		msh->cmd_path = NULL;
 		msh->args = ft_split_whitespaces(msh->cmds[i]);
 		if (*msh->args)
-			exec_cmd(msh);
+			return (exec_cmd(msh));
 		i++;
 	}
-	return (1);
-}
-
-void	simplify_cmd(t_minishell *msh)
-{
-	char	*line;
-	char	*str;
-	
-	str = NULL;
-	line = msh->line;
-	while (*line)
-	{
-		while (*line && *line != '\'' && *line != '\"')
-				str = ft_str_pushback(str, *line++);
-		if (*line == '\'')
-		{
-			while (*line++ && *line != '\'')
-				str = ft_str_pushback(str, *line);
-		}
-		if (*line == '\"')
-		{
-			while (*line++ && *line != '\"')
-				str = ft_str_pushback(str, *line);
-		}
-		if (*line)
-			line++;
-	}
-	if (str)
-	{
-		free(msh->line);
-		msh->line = str;
-	}
+	return (0);
 }
 
 int		main(int ac, char *av[], char *env[])
@@ -384,7 +304,7 @@ int		main(int ac, char *av[], char *env[])
 		msh.sflag = 0;
 		prompt_dir(&msh);
 		read_cmd(&msh);
-		if (!parse_exec_cmd(&msh))
+		if (parse_exec_cmd(&msh))
 			continue ;
 		free_msh(&msh);
 	}

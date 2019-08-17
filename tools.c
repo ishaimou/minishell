@@ -1,5 +1,22 @@
 #include "minishell.h"
 
+void	print_chars(char *str)
+{
+	int		i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\n')
+			ft_putstr("\\n");
+		else if (str[i] == '\t')
+			ft_putstr("\\t");
+		else
+			ft_putchar(str[i]);
+		i++;
+	}
+}
+
 int		get_argc(char **args)
 {
 	int		argc;
@@ -94,4 +111,35 @@ void	prompt_dir(t_minishell *msh)
 		ft_putstr("\033[m ");
 	}
 	ft_putstr("$> ");
+}
+
+void	simplify_cmd(t_minishell *msh)
+{
+	char	*line;
+	char	*str;
+	
+	str = NULL;
+	line = msh->line;
+	while (*line)
+	{
+		while (*line && *line != '\'' && *line != '\"')
+				str = ft_str_pushback(str, *line++);
+		if (*line == '\'')
+		{
+			while (*line++ && *line != '\'')
+				str = ft_str_pushback(str, *line);
+		}
+		if (*line == '\"')
+		{
+			while (*line++ && *line != '\"')
+				str = ft_str_pushback(str, *line);
+		}
+		if (*line)
+			line++;
+	}
+	if (str)
+	{
+		free(msh->line);
+		msh->line = str;
+	}
 }
