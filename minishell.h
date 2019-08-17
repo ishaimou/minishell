@@ -22,18 +22,12 @@ typedef struct s_minishell	t_minishell;
 
 typedef void (*builtin_func) (t_minishell *);
 
-typedef struct		s_envlst
+typedef struct		s_diclst
 {
 	char			*name;
 	char			*value;
-	struct s_envlst	*next;
-}					t_envlst;
-
-typedef struct		s_varlst
-{
-	char			*var_name;
-	int				*var_value;
-}					t_varlst;
+	struct s_diclst	*next;
+}					t_diclst;
 
 struct		 		s_minishell
 {
@@ -54,8 +48,8 @@ struct		 		s_minishell
 	char			*oldpwd;
 	char			*pwd;
 	char			**builtin_name;
-	t_envlst		*env_lst;
-	t_varlst		*var_lst;
+	t_diclst		*env_lst;
+	t_diclst		*var_lst;
 	builtin_func	*funct_tab;
 };
 
@@ -70,8 +64,8 @@ char		**set_env(t_minishell *msh);
 void		prompt_dir(t_minishell *msh);
 int			get_argc(char **args);
 int			is_builtin(t_minishell *msh, char *cmd_name);
-t_envlst	*get_envlst_val(t_minishell *msh, char *name);
-void		add_envlst(t_envlst **env_lst, char **tab_env);
+t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type);
+void		add_diclst(t_diclst **dic_lst, char **tab);
 void		set_envlst(t_minishell *msh, char **env);
 char		*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
 void		free_msh(t_minishell *msh);

@@ -8,12 +8,12 @@ void	print_2d(char **s)
 		printf("%s\n", *s++);
 }
 
-void	print_envlst(t_envlst	*env_lst)
+void	print_diclst(t_diclst	*dic_lst)
 {
-	while (env_lst)
+	while (dic_lst)
 	{
-		ft_printf("%s=%s\n", env_lst->name, env_lst->value);
-		env_lst = env_lst->next;
+		ft_printf("%s=%s\n", dic_lst->name, dic_lst->value);
+		dic_lst = dic_lst->next;
 	}
 }
 
@@ -107,7 +107,7 @@ void	read_cmd(t_minishell *msh)
 	read_cmd(msh);
 }
 
-void	get_cmd_path(t_minishell *msh, char **paths)
+void	get_cmd_path(t_minishell *msh, char **paths, int ind)
 {
 	int		i;
 	DIR		*dirp;
@@ -120,7 +120,7 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 			break;
 		while ((res = readdir(dirp)))
 		{
-			if (!ft_strcmp(res->d_name, msh->args[0]))
+			if (!ft_strcmp(res->d_name, msh->args[ind]))
 			{
 				rm_trailing_slash(&paths[i]);
 				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
@@ -134,7 +134,7 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 	}
 }
 
-void	find_path_cmd(t_minishell *msh)
+void	find_path_cmd(t_minishell *msh, int ind)
 {
 	char			**path_env;
 	char			**paths;
@@ -143,8 +143,8 @@ void	find_path_cmd(t_minishell *msh)
 	path_env = NULL;
 	paths = NULL;
 	i = 0;
-	if (ft_strchr(msh->args[0], '/'))
-		msh->cmd_path = msh->args[0];
+	if (ft_strchr(msh->args[ind], '/'))
+		msh->cmd_path = msh->args[ind];
 	else
 	{
 		msh->env = set_env(msh);
@@ -157,7 +157,7 @@ void	find_path_cmd(t_minishell *msh)
 				paths = ft_strsplit(*(path_env + 1), ':');
 		}
 		if (paths && *paths)
-			get_cmd_path(msh, paths);
+			get_cmd_path(msh, paths, ind);
 	}
 }
 
@@ -178,7 +178,7 @@ void	print_chars(char *str)
 	}
 }
 
-void	launch_cmd(t_minishell *msh)
+void	launch_cmd(t_minishell *msh, int ind)
 {
 	pid_t	cpid;
 	pid_t	wpid;
@@ -193,9 +193,9 @@ void	launch_cmd(t_minishell *msh)
 	else if (cpid == 0)
 	{
 		msh->env = set_env(msh);
-		if (execve(msh->cmd_path, msh->args, msh->env) < 0)
+		if (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
 		{
-			print_chars(msh->args[0]);
+			print_chars(msh->args[ind]);
 			ft_putstr(": command not found\n");
 			free_msh(msh);
 			exit(EXIT_FAILURE);
@@ -211,6 +211,67 @@ void	launch_cmd(t_minishell *msh)
 	}
 }
 
+int		set_varlst(t_minishell *msh, char *arg)
+{
+	t_diclst	*node;
+	char		**tab_var;
+	int			i;
+
+	if (arg[0] == '=')
+		return (0);
+	i = 0;
+	while (arg[i] && arg[i] != '=' && ft_isalnum(arg[i]))
+		i++;
+	if (arg[i] != '=')
+		return (0);
+	tab_var = (char**)malloc(sizeof(char*) * 3);
+	tab_var[0] = ft_strndup(arg, i);
+	tab_var[1] = ft_strdup(arg + i + 1);
+	tab_var[2] = NULL;
+	node = get_diclst_val(msh, tab_var[0], 1);
+	if (node)
+	{
+		free(node->value);
+		node->value = ft_strdup(tab_var[1]);
+	}
+	else
+		add_diclst(&msh->var_lst, tab_var);
+	free_dbl(&tab_var);
+	return (1);
+}
+
+void	get_value(t_minishell *msh, char **arg, char *ptr)
+{
+	t_diclst	*node;
+	char		**tab_dollar;
+	char		*str;
+	char		*tmp;
+	int			i;
+	int			len;
+
+	i = ptr - *arg;
+	str = ft_strndup(*arg, i);
+	tab_dollar = ft_strsplit(ptr, '$');
+	if (*tab_dollar)
+	{
+		i = -1;
+		len = get_argc(tab_dollar);
+		while (++i < len)
+		{
+			if ((node = get_diclst_val(msh, tab_dollar[i], 1)) ||
+				 (node = get_diclst_val(msh, tab_dollar[i], 0)))
+			{
+				tmp = str;
+				str = ft_strjoin(str, node->value);
+				free(tmp);
+			}
+		}
+	}
+	free(tab_dollar);
+	free(*arg);
+	*arg = str;
+}
+
 void	handle_exp(t_minishell *msh)
 {
 	char	*ptr;
@@ -218,19 +279,17 @@ void	handle_exp(t_minishell *msh)
 	int		i;
 
 	i = 0;
-	msh->home = get_envlst_val(msh, "HOME")->value;
+	msh->home = get_diclst_val(msh, "HOME", 0)->value;
 	while (msh->args[i])
 	{
-		//if (ft_strchr(msh->args[i], '='))
-		//	set_value(msh, &msh->args[i]);
+		while ((ptr = ft_strchr(msh->args[i], '$')))
+			get_value(msh, &msh->args[i], ptr);
 		if (msh->args[i][0] == '~')
 		{
 			tmp = msh->args[i];
 			msh->args[i] = ft_strjoin(msh->home, msh->args[i] + 1);
 			free(tmp);
 		}
-		//while ((ptr = ft_strchr(msh->args[i], '$')))
-		//	get_value(msh, &msh->args[i], ptr);
 		i++;
 	}
 }
@@ -238,14 +297,20 @@ void	handle_exp(t_minishell *msh)
 void	exec_cmd(t_minishell *msh)
 {
 	int		pos;
-	
+	int		ind;
+
+	ind = 0;
+	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') && set_varlst(msh, msh->args[ind]))
+		ind++;
 	handle_exp(msh);
-	if ((pos = is_builtin(msh, msh->args[0])) != -1)
+	if (!msh->args[ind] || !msh->args[ind][0])
+		return ;
+	if ((pos = is_builtin(msh, msh->args[ind])) != -1)
 		(msh->funct_tab[pos])(msh);
 	else
 	{
-		find_path_cmd(msh);
-		launch_cmd(msh);
+		find_path_cmd(msh, ind);
+		launch_cmd(msh, ind);
 	}
 }
 

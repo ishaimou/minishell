@@ -63,7 +63,7 @@ char	*home_to_tild(t_minishell *msh, char *str)
 	char	*tmp;
 	int		len;
 
-	msh->home = get_envlst_val(msh, "HOME")->value;
+	msh->home = get_diclst_val(msh, "HOME", 0)->value;
 	if (ft_strstr(str, msh->home))
 	{
 		len = ft_strlen(msh->home);
@@ -78,8 +78,8 @@ char	*home_to_tild(t_minishell *msh, char *str)
 void	prompt_dir(t_minishell *msh)
 {
 	char *pwd;
-	msh->user = get_envlst_val(msh, "USER")->value;
-	msh->pwd = get_envlst_val(msh, "PWD")->value;
+	msh->user = get_diclst_val(msh, "USER", 0)->value;
+	msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
 	msh->pwd = home_to_tild(msh, msh->pwd);
 	if (msh->user)
 	{

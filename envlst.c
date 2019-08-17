@@ -1,10 +1,13 @@
 #include "minishell.h"
 
-t_envlst	*get_envlst_val(t_minishell *msh, char *name)
+t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type)
 {
-	t_envlst	*tmp;
-	
-	tmp = msh->env_lst;
+	t_diclst	*tmp;
+
+	if (!type)
+		tmp = msh->env_lst;
+	else
+		tmp = msh->var_lst;
 	while (tmp)
 	{
 		if (!ft_strcmp(tmp->name, name))
@@ -14,27 +17,30 @@ t_envlst	*get_envlst_val(t_minishell *msh, char *name)
 	return (NULL);
 }
 
-void	add_envlst(t_envlst **env_lst, char **tab_env)
+void	add_diclst(t_diclst **dic_lst, char **tab)
 {
-	t_envlst	*node;
-	t_envlst	*tmp;
+	t_diclst	*node;
+	t_diclst	*tmp;
 
-	node = (t_envlst*)malloc(sizeof(t_envlst));
+	node = (t_diclst*)malloc(sizeof(t_diclst));
 	node->next = NULL;
-	node->name = ft_strdup(tab_env[0]);
-	node->value = ft_strdup(tab_env[1]);
-	if (!*env_lst)
-		*env_lst = node;
+	node->name = ft_strdup(tab[0]);
+	if (tab[1])
+		node->value = ft_strdup(tab[1]);
+	else
+		node->value = ft_strnew(0);
+	if (!*dic_lst)
+		*dic_lst = node;
 	else
 	{
-		tmp = *env_lst;
+		tmp = *dic_lst;
 		while (tmp->next)
 			tmp = tmp->next;
 		tmp->next = node;
 	}
 }
 
-int		envlst_size(t_envlst *begin_list)
+int		diclst_size(t_diclst *begin_list)
 {
 	int		i;
 
@@ -56,7 +62,7 @@ void	set_envlst(t_minishell *msh, char **env)
 	{
 		tab_env = ft_strsplit(*env, '=');
 		if (*tab_env)
-			add_envlst(&msh->env_lst, tab_env);
+			add_diclst(&msh->env_lst, tab_env);
 		free_dbl(&tab_env);
 		env++;
 	}
@@ -64,14 +70,14 @@ void	set_envlst(t_minishell *msh, char **env)
 
 char	**set_env(t_minishell *msh)
 {
-	t_envlst	*env_lst;
+	t_diclst	*env_lst;
 	char		**environ;
 	char		*str;
 	int			i;
 	
 	i = 0;
 	env_lst = msh->env_lst;
-	environ = (char**)malloc(sizeof(char*) * (envlst_size(msh->env_lst) + 1));
+	environ = (char**)malloc(sizeof(char*) * (diclst_size(msh->env_lst) + 1));
 	while (env_lst)
 	{
 		str = ft_strjoin_sep(env_lst->name, env_lst->value, "=");

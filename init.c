@@ -22,15 +22,15 @@ static void	set_builtin(t_minishell *msh)
 
 static void	set_oldpwd(t_minishell *msh)
 {
-	t_envlst	*node;
+	t_diclst	*node;
 
-	node = get_envlst_val(msh, "OLDPWD");
-	msh->pwd = get_envlst_val(msh, "PWD")->value;
+	node = get_diclst_val(msh, "OLDPWD", 0);
+	msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
 	if (node)
 	{
 		free(node->value);
 		node->value = ft_strdup(msh->pwd);
-		msh->oldpwd = get_envlst_val(msh, "OLDPWD")->value;
+		msh->oldpwd = get_diclst_val(msh, "OLDPWD", 0)->value;
 	}
 }
 
@@ -58,6 +58,7 @@ void	init_msh(t_minishell *msh, int ac, char **av, char **env)
 	msh->pwd = NULL;
 	msh->oldpwd = NULL;
 	msh->env_lst = NULL;
+	msh->var_lst = NULL;
 	msh->env = env;	
 	init_qparam(msh);
 	set_builtin(msh);
