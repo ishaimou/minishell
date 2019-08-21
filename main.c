@@ -66,36 +66,35 @@ int		handle_quotes(t_minishell *msh, char *line)
 		return (0);
 }
 
-char	*read_line(t_minishell *msh)
+void	read_line(t_minishell *msh, int *q)
 {
 	char	*line;
 	char	*tmp;
 	
+	line = NULL;
 	if (get_next_line(0, &line) < 0)
 	{
 		ft_dprintf(2, "Error gnl\n");
 		free(line);
-		line = NULL;
 		exit(EXIT_FAILURE);
 	}
+	*q = handle_quotes(msh, line);
 	if (msh->quoted)
 	{
 		tmp = msh->line;
 		msh->line = ft_strjoin_sep(msh->line, line, "\n");
 		free(tmp);
+		free(line);
 	}
 	else
 		msh->line = line;
-	return (line);
 }
 
 void	read_cmd(t_minishell *msh)
 {
 	int		q;
-	char	*line;
 
-	line = read_line(msh);
-	q = handle_quotes(msh, line);
+	read_line(msh, &q);
 	msh->quoted = q;
 	if (!q)
 		return ;
@@ -103,7 +102,6 @@ void	read_cmd(t_minishell *msh)
 		ft_putstr("quote> ");
 	else if (q == 2)
 		ft_putstr("dquote> ");
-	//free(line);
 	read_cmd(msh);
 }
 
@@ -111,6 +109,12 @@ void	error_fork(t_minishell *msh)
 {
 	ft_dprintf(2, "Error fork\n");
 	free_msh(msh);
+	free(msh->line);
+	free(msh->cmd_path);
+	free_dbl(&msh->builtin_name);
+	free_diclst(&msh->env_lst);
+	free_diclst(&msh->var_lst);
+	free(msh->funct_tab);
 	exit(EXIT_FAILURE);
 }
 
@@ -154,14 +158,13 @@ int		check_err(t_minishell *msh, int mode)
 void	ft_execve(t_minishell *msh, int ind)
 {
 
+	free_dbl(&msh->env);
 	msh->env = set_env(msh);
 	if (check_err(msh, NO_FOUND))
 		exit(EXIT_FAILURE);
 	if  (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
 	{
-		print_chars(msh->cmd_path);
-		ft_putstr(": Error execve\n");
-		free_msh(msh);
+		ft_putstr("Error execve\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -178,11 +181,8 @@ void	launch_cmd(t_minishell *msh, int ind)
 		ft_execve(msh, ind);
 	else
 	{
-		if ((wpid = waitpid(cpid, &stat_loc, WUNTRACED)) < 0)
-		{
-			ft_dprintf(2, "Error waitpid\n");
-			exit(EXIT_FAILURE);
-		}
+		wpid = waitpid(cpid, &stat_loc, WUNTRACED);
+		free_dbl(&msh->env);
 	}
 }
 
@@ -205,7 +205,8 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 		{
 			if (!ft_strcmp(res->d_name, msh->cmd_path))
 			{
-				rm_trailing_slash(&paths[i]);
+				rm_trailing_slash(&paths[i]);  // a repenser
+				free(msh->cmd_path);
 				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
 				(void)closedir(dirp);
 				return ;
@@ -225,47 +226,55 @@ int		find_path_cmd(t_minishell *msh, int ind)
 	path_env = NULL;
 	paths = NULL;
 	i = 0;
-	msh->cmd_path = msh->args[ind];
+	msh->env = set_env(msh);
+	msh->cmd_path = ft_strdup(msh->args[ind]);
 	if (ft_strchr(msh->cmd_path, '/'))
 		return (check_err(msh, 0));
-	msh->env = set_env(msh);
 	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
 		i++;
-	if (msh->env[i])
+	if (!msh->env[i])
+		return (0) ;
+	path_env = ft_strsplit(msh->env[i], '=');
+	if (*path_env)
 	{
-		path_env = ft_strsplit(msh->env[i], '=');
-		if (*path_env)
-			paths = ft_strsplit(*(path_env + 1), ':');
+		paths = ft_strsplit(*(path_env + 1), ':');
+		free_dbl(&path_env);
 	}
 	if (paths && *paths)
+	{
 		get_cmd_path(msh, paths);
+		free_dbl(&paths);
+	}
 	return (0);
 }
 
-int		exec_cmd(t_minishell *msh)
+void	exec_cmd(t_minishell *msh)
 {
 	int		pos;
 	int		ind;
 
 	ind = 0;
+
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
 		&& set_varlst(msh, msh->args[ind]))
 		ind++;
 	handle_exp(msh);
 	if (!msh->args[ind] || !msh->args[ind][0])
-		return (1) ;
+		return ;
 	if ((pos = is_builtin(msh, msh->args[ind])) != -1)
-		(msh->funct_tab[pos])(msh);
+		(msh->funct_tab[pos])(msh, ind);
 	else
 	{
 		if (find_path_cmd(msh, ind))
-			return (1);
+		{
+			free_dbl(&msh->env);
+			return ;
+		}
 		launch_cmd(msh, ind);
 	}
-	return (0);
 }
 
-int		parse_exec_cmd(t_minishell *msh)
+void	parse_exec_cmd(t_minishell *msh)
 {
 	int		i;
 
@@ -274,24 +283,25 @@ int		parse_exec_cmd(t_minishell *msh)
 		simplify_cmd(msh);
 	msh->cmds = ft_strsplit(msh->line, ';');
 	if (!msh->cmds[0])
-		return (1);
+		return ;
 	while (msh->cmds[i])
 	{
 		msh->argc = 0;
 		msh->cmd_path = NULL;
 		msh->args = ft_split_whitespaces(msh->cmds[i]);
 		if (*msh->args)
-			return (exec_cmd(msh));
+			exec_cmd(msh);
+		free_dbl(&msh->args);
+		free(msh->cmd_path);
 		i++;
 	}
-	return (0);
 }
 
 int		main(int ac, char *av[], char *env[])
 {
 	t_minishell		msh;
 	
-	init_msh(&msh, ac, av, env);	
+	init_msh(&msh, ac, av, env);
 	signal(SIGINT, sigint_handler);
 	while (IS_TRUE)
 	{
@@ -304,9 +314,9 @@ int		main(int ac, char *av[], char *env[])
 		msh.sflag = 0;
 		prompt_dir(&msh);
 		read_cmd(&msh);
-		if (parse_exec_cmd(&msh))
-			continue ;
-		free_msh(&msh);
+		parse_exec_cmd(&msh);
+		free(msh.line);
+		free_dbl(&msh.cmds);
 	}
 	return (0);
 }

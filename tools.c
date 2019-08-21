@@ -77,40 +77,54 @@ int		is_builtin(t_minishell *msh, char *cmd_name)
 
 char	*home_to_tild(t_minishell *msh, char *str)
 {
-	char	*tmp;
-	int		len;
+	char		*tmp;
+	int			len;
+	char		*new_str;
+	t_diclst	*node;
 
-	msh->home = get_diclst_val(msh, "HOME", 0)->value;
-	if (ft_strstr(str, msh->home))
+	new_str = ft_strdup(str);
+	node = get_diclst_val(msh, "HOME", 0);
+	if (node)
+		msh->home = node->value;
+	if (msh->home[0] && ft_strstr(str, msh->home))
 	{
 		len = ft_strlen(msh->home);
-		str = ft_strdup(str + len);
-		tmp = str;
-		str = ft_strjoin("~", str);
+		free(new_str);
+		new_str = ft_strdup(str + len);
+		tmp = new_str;
+		new_str = ft_strjoin("~", new_str);
 		free(tmp);
 	}
-	return (str);
+	return (new_str);
 }
 
 void	prompt_dir(t_minishell *msh)
 {
-	char *pwd;
-	msh->user = get_diclst_val(msh, "USER", 0)->value;
-	msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
-	msh->pwd = home_to_tild(msh, msh->pwd);
+	char *buf;
+	char *cwd;
+	char *cwd_tild;
+	t_diclst	*node;
+
+	buf = NULL;
+	node = get_diclst_val(msh, "USER", 0);
+	if (node)
+		msh->user = node->value;
+	else
+		msh->user = "";
+	cwd = getcwd(buf, CWD_BUF_SIZE);
+	cwd_tild = home_to_tild(msh, cwd);
 	if (msh->user)
 	{
 		ft_putstr("\033[1;32m");
 		ft_putstr(msh->user);
 		ft_putstr("\033[m:");
 	}
-	if (msh->pwd)
-	{
-		ft_putstr("\033[1;36m");
-		ft_putstr(msh->pwd);
-		ft_putstr("\033[m ");
-	}
+	ft_putstr("\033[1;36m");
+	ft_putstr(cwd_tild);
+	ft_putstr("\033[m ");
 	ft_putstr("$> ");
+	free(cwd);
+	free(cwd_tild);
 }
 
 void	simplify_cmd(t_minishell *msh)

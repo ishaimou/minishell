@@ -59,7 +59,7 @@ void	init_msh(t_minishell *msh, int ac, char **av, char **env)
 	msh->oldpwd = NULL;
 	msh->env_lst = NULL;
 	msh->var_lst = NULL;
-	msh->env = env;	
+	msh->env = NULL;	
 	init_qparam(msh);
 	set_builtin(msh);
 	set_envlst(msh, env);

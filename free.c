@@ -15,12 +15,31 @@ void    free_dbl(char ***tab)
 	*tab = NULL;
 }
 
-void	free_msh(t_minishell *msh)
+void	free_diclst(t_diclst **begin)
 {
-	if (msh->line)
-		free(msh->line);
-	if (msh->args)
-		free_dbl(&msh->args);
-	msh->line = NULL;
+	t_diclst 	*curr;
+	t_diclst	*tmp;
+
+	curr = *begin;
+	while (curr)
+	{
+		tmp = curr;
+		free(curr->name);
+		free(curr->value);
+		curr = curr->next;
+		free(tmp);
+	}
+	*begin = NULL;
 }
 
+void	free_msh(t_minishell *msh)
+{
+	free(msh->line);
+	if (msh->args)
+		free_dbl(&msh->args);
+	if (msh->cmds)
+		free_dbl(&msh->cmds);
+	free(msh->cmd_path);
+	if (msh->env)
+		free_dbl(&msh->env);
+}

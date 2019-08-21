@@ -17,16 +17,16 @@ t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type)
 	return (NULL);
 }
 
-void	add_diclst(t_diclst **dic_lst, char **tab)
+void	add_diclst(t_diclst **dic_lst, char *name, char *value)
 {
 	t_diclst	*node;
 	t_diclst	*tmp;
 
 	node = (t_diclst*)malloc(sizeof(t_diclst));
 	node->next = NULL;
-	node->name = ft_strdup(tab[0]);
-	if (tab[1])
-		node->value = ft_strdup(tab[1]);
+	node->name = ft_strdup(name);
+	if (value)
+		node->value = ft_strdup(value);
 	else
 		node->value = ft_strnew(0);
 	if (!*dic_lst)
@@ -62,7 +62,7 @@ void	set_envlst(t_minishell *msh, char **env)
 	{
 		tab_env = ft_strsplit(*env, '=');
 		if (*tab_env)
-			add_diclst(&msh->env_lst, tab_env);
+			add_diclst(&msh->env_lst, tab_env[0], tab_env[1]);
 		free_dbl(&tab_env);
 		env++;
 	}

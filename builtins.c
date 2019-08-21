@@ -1,82 +1,110 @@
 #include "minishell.h"
 
-void		builtin_cd(t_minishell *msh)
+void		realloc_args(t_minishell *msh)
+{
+	t_diclst	*node;
+
+	free_dbl(&msh->args);
+	msh->args = (char**)malloc(sizeof(char*) * 3);
+	msh->args[0] = ft_strdup("cd");
+	node = get_diclst_val(msh, "HOME", 0);
+	if (node)
+		msh->home = node->value;
+	else
+		msh->home = "";
+	msh->args[1] = ft_strdup(msh->home);
+	msh->args[2] = NULL;
+}
+
+void		builtin_cd(t_minishell *msh, int ind)
 {
 	char	*buf;
 	char	*tmp;
+	char	*cwd;
+	t_diclst	*node;
 
 	buf = NULL;
-	msh->argc = get_argc(msh->args);
+	msh->argc = get_argc(msh->args + ind);
 	if (msh->argc > 2)
+	{
 		ft_printf("cd: usage: cd [optional argument]\n");
-	else if (!msh->args[1])
-	{
-		msh->home = get_diclst_val(msh, "HOME", 0)->value;
-		if (chdir(msh->home))
-			ft_dprintf(2, "Error chdir\n");
-		else
-		{
-			tmp = get_diclst_val(msh, "PWD", 0)->value;
-			free(get_diclst_val(msh, "OLDPWD", 0)->value);
-			get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(tmp);
-			free(tmp);
-			tmp = NULL;
-			get_diclst_val(msh, "PWD", 0)->value = ft_strdup(msh->home);
-		}
+		return ;
 	}
-	else if (!ft_strcmp(msh->args[1], "-"))
+	if (!msh->args[ind + 1])
 	{
-		msh->oldpwd = get_diclst_val(msh, "OLDPWD", 0)->value;
-		msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
-		if (chdir(msh->oldpwd))
-			ft_dprintf(2, "Error chdir\n");
-		else
-		{
-			msh->oldpwd = home_to_tild(msh, msh->oldpwd);
-			ft_printf("%s\n", msh->oldpwd);
-			free(get_diclst_val(msh, "OLDPWD", 0)->value);
-			get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(msh->pwd);
-			free(get_diclst_val(msh, "PWD", 0)->value);
-			get_diclst_val(msh, "PWD", 0)->value = getcwd(buf, CWD_BUF_SIZE);
-		}
+		realloc_args(msh);
+		ind = 0;
+	}
+	cwd = getcwd(buf, CWD_BUF_SIZE);
+	node = get_diclst_val(msh, "OLDPWD", 0);
+	if (node)
+		msh->oldpwd = node->value;
+	else
+		add_diclst(&msh->env_lst, "OLDPWD", cwd);
+	node = get_diclst_val(msh, "PWD", 0);
+	if (node)
+		msh->pwd = node->value;
+	else
+		add_diclst(&msh->env_lst, "PWD", cwd);
+	free(cwd);
+	if (!ft_strlen(msh->args[ind + 1]))
+		return ;
+	if (!ft_strcmp(msh->args[ind + 1], "-"))
+	{
+		chdir(msh->oldpwd);
+		tmp = home_to_tild(msh, msh->oldpwd);
+		ft_printf("%s\n", tmp);
+		free(tmp);
+		free(get_diclst_val(msh, "OLDPWD", 0)->value);
+		get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(msh->pwd);
+		free(get_diclst_val(msh, "PWD", 0)->value);
+		buf = NULL;
+		get_diclst_val(msh, "PWD", 0)->value = getcwd(buf, CWD_BUF_SIZE);
 	}
 	else
 	{
-		if (chdir(msh->args[1]))
-			ft_dprintf(2, "Error chdir\n");
+		if (chdir(msh->args[ind + 1]))
+			ft_dprintf(2, "cd: no such file or directory: %s\n", msh->args[ind + 1]);
 		else
 		{
 			tmp = get_diclst_val(msh, "PWD", 0)->value;
 			free(get_diclst_val(msh, "OLDPWD", 0)->value);
 			get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(tmp);
 			free(tmp);
-			tmp = NULL;
+			buf = NULL;
 			get_diclst_val(msh, "PWD", 0)->value = getcwd(buf, CWD_BUF_SIZE);
 		}
 	}
 }
 
-void		builtin_exit(t_minishell *msh)
+void		builtin_exit(t_minishell *msh, int ind)
 {
 	int		argc;
+	int		ret;
+	char	**args;
 
-	argc = get_argc(msh->args);
+	args = msh->args + ind;
+	argc = get_argc(args);
 	if (argc > 2)
 	{
 		ft_printf("exit: too many arguments\n");
 		return ;
 	}
-	if (!msh->args[1])
-		exit(EXIT_SUCCESS);
-	exit(ft_atoi(msh->args[1]));
+	ret = args[1] ? ft_atoi(args[1]) : EXIT_SUCCESS;
+	free_msh(msh);
+	free_dbl(&msh->builtin_name);
+	free_diclst(&msh->env_lst);
+	free_diclst(&msh->var_lst);
+	free(msh->funct_tab);
+	exit(ret);
 }
 
-void	builtin_env(t_minishell *msh)
+void	builtin_env(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	int			argc;
-
-	argc = get_argc(msh->args);
+	
+	argc = get_argc(msh->args + ind);
 	if (argc > 1)
 	{
 		ft_printf("env: %s: No such file or directory\n", msh->args[1]);
@@ -90,19 +118,19 @@ void	builtin_env(t_minishell *msh)
 	}
 }
 
-void	builtin_setenv(t_minishell *msh)
+void	builtin_setenv(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	char		**args;
 	int			argc;
 
 
-	if ((argc = get_argc(msh->args)) != 2 && argc != 3)
+	args = msh->args + ind;
+	if ((argc = get_argc(args)) != 2 && argc != 3)
 	{
 		ft_printf("setenv: usage: setenv [NAME] [OPTIONAL VALUE]\n");
 		return ;
 	}
-	args = msh->args;
 	env_lst = msh->env_lst;
 	while (env_lst)
 	{
@@ -117,7 +145,7 @@ void	builtin_setenv(t_minishell *msh)
 		}
 		env_lst = env_lst->next;
 	}
-	add_diclst(&msh->env_lst, ++args); 
+	add_diclst(&msh->env_lst, args[1], args[2]); 
 }
 
 void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
@@ -129,22 +157,28 @@ void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
 		tmp = *node;
 		*node = (*node)->next;
 		(*msh)->env_lst = *node;
+		free(tmp->name);
+		free(tmp->value);
 		free(tmp);
 	}
 	else
 	{
 		(*prev)->next = (*node)->next;
+		free((*node)->name);
+		free((*node)->value);
 		free(*node);
 	}
 }
 
-void	builtin_unsetenv(t_minishell *msh)
+void	builtin_unsetenv(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	t_diclst	*prev;
 	int			argc;
+	char		**args;
 
-	if ((argc = get_argc(msh->args)) != 2)
+	args = msh->args + ind;
+	if ((argc = get_argc(args)) != 2)
 	{
 		ft_printf("unsetenv: usage: unsetenv [NAME]\n");
 		return ;
@@ -153,22 +187,22 @@ void	builtin_unsetenv(t_minishell *msh)
 	prev = env_lst;
 	while (env_lst)
 	{
-		if (!strcmp(msh->args[1], env_lst->name))
+		if (!strcmp(args[1], env_lst->name))
 			ft_unsetenv(&msh, &env_lst, &prev);
 		prev = env_lst;
 		env_lst = env_lst->next;
 	}
 }
 
-void	builtin_echo(t_minishell *msh)
+void	builtin_echo(t_minishell *msh, int ind)
 {
 	char	**args;
 	int		argc;
 	int		i;
 
 	i = 1;
-	argc = get_argc(msh->args);
-	args = msh->args;
+	args = msh->args + ind;
+	argc = get_argc(args);
 	args++;
 	while (*args)
 	{

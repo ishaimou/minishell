@@ -9,7 +9,7 @@ int		set_varlst(t_minishell *msh, char *arg)
 	if (arg[0] == '=')
 		return (0);
 	i = 0;
-	while (arg[i] && arg[i] != '=' && ft_isalnum(arg[i]))
+	while (arg[i] && arg[i] != '=' && ft_isprint(arg[i]))
 		i++;
 	if (arg[i] != '=')
 		return (0);
@@ -24,7 +24,7 @@ int		set_varlst(t_minishell *msh, char *arg)
 		node->value = ft_strdup(tab_var[1]);
 	}
 	else
-		add_diclst(&msh->var_lst, tab_var);
+		add_diclst(&msh->var_lst, tab_var[0], tab_var[1]);
 	free_dbl(&tab_var);
 	return (1);
 }
@@ -56,7 +56,7 @@ void	get_value(t_minishell *msh, char **arg, char *ptr)
 			}
 		}
 	}
-	free(tab_dollar);
+	free_dbl(&tab_dollar);
 	free(*arg);
 	*arg = str;
 }
@@ -65,10 +65,13 @@ void	handle_exp(t_minishell *msh)
 {
 	char	*ptr;
 	char	*tmp;
+	t_diclst	*node;
 	int		i;
 
 	i = 0;
-	msh->home = get_diclst_val(msh, "HOME", 0)->value;
+	node = get_diclst_val(msh, "HOME", 0);
+	if (node)
+		msh->home = node->value;
 	while (msh->args[i])
 	{
 		while ((ptr = ft_strchr(msh->args[i], '$')))
