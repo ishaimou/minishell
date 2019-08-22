@@ -1,5 +1,16 @@
 #include "minishell.h"
 
+void	malloc_error(t_minishell *msh)
+{
+	ft_dprintf(2, "Error: malloc() failed allocate memory\n");
+	free_msh(msh);
+	free_dbl(&msh->builtin_name);
+	free_diclst(&msh->env_lst);
+	free_diclst(&msh->var_lst);
+	free(msh->funct_tab);
+	exit(EXIT_FAILURE);
+}
+
 void    free_dbl(char ***tab)
 {
 	int		i;

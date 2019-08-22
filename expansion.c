@@ -13,7 +13,8 @@ int		set_varlst(t_minishell *msh, char *arg)
 		i++;
 	if (arg[i] != '=')
 		return (0);
-	tab_var = (char**)malloc(sizeof(char*) * 3);
+	if (!(tab_var = (char**)malloc(sizeof(char*) * 3)))
+		malloc_error(msh);
 	tab_var[0] = ft_strndup(arg, i);
 	tab_var[1] = ft_strdup(arg + i + 1);
 	tab_var[2] = NULL;
@@ -24,7 +25,7 @@ int		set_varlst(t_minishell *msh, char *arg)
 		node->value = ft_strdup(tab_var[1]);
 	}
 	else
-		add_diclst(&msh->var_lst, tab_var[0], tab_var[1]);
+		add_diclst(msh, &msh->var_lst, tab_var[0], tab_var[1]);
 	free_dbl(&tab_var);
 	return (1);
 }

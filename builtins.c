@@ -5,7 +5,8 @@ void		realloc_args(t_minishell *msh)
 	t_diclst	*node;
 
 	free_dbl(&msh->args);
-	msh->args = (char**)malloc(sizeof(char*) * 3);
+	if (!(msh->args = (char**)malloc(sizeof(char*) * 3)))
+		malloc_error(msh);
 	msh->args[0] = ft_strdup("cd");
 	node = get_diclst_val(msh, "HOME", 0);
 	if (node)
@@ -22,6 +23,7 @@ void		builtin_cd(t_minishell *msh, int ind)
 	char	*tmp;
 	char	*cwd;
 	t_diclst	*node;
+	struct stat	file_info;
 
 	buf = NULL;
 	msh->argc = get_argc(msh->args + ind);
@@ -40,12 +42,12 @@ void		builtin_cd(t_minishell *msh, int ind)
 	if (node)
 		msh->oldpwd = node->value;
 	else
-		add_diclst(&msh->env_lst, "OLDPWD", cwd);
+		add_diclst(msh, &msh->env_lst, "OLDPWD", cwd);
 	node = get_diclst_val(msh, "PWD", 0);
 	if (node)
 		msh->pwd = node->value;
 	else
-		add_diclst(&msh->env_lst, "PWD", cwd);
+		add_diclst(msh, &msh->env_lst, "PWD", cwd);
 	free(cwd);
 	if (!ft_strlen(msh->args[ind + 1]))
 		return ;
@@ -63,6 +65,19 @@ void		builtin_cd(t_minishell *msh, int ind)
 	}
 	else
 	{
+		if (!stat(msh->args[ind + 1], &file_info))
+		{
+			if (!S_ISDIR(file_info.st_mode))
+			{
+				ft_dprintf(2, "cd: not a directory: %s\n", msh->args[ind + 1]);
+				return ;
+			}
+			if (access(msh->args[ind + 1], X_OK))
+			{
+				ft_dprintf(2, "cd: permission denied: %s\n", msh->args[ind + 1]);
+				return ;
+			}
+		}
 		if (chdir(msh->args[ind + 1]))
 			ft_dprintf(2, "cd: no such file or directory: %s\n", msh->args[ind + 1]);
 		else
@@ -145,21 +160,17 @@ void	builtin_setenv(t_minishell *msh, int ind)
 		}
 		env_lst = env_lst->next;
 	}
-	add_diclst(&msh->env_lst, args[1], args[2]); 
+	add_diclst(msh, &msh->env_lst, args[1], args[2]); 
 }
 
 void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
 {
-	t_diclst	*tmp;
-
 	if ((*msh)->env_lst == *node)
 	{
-		tmp = *node;
-		*node = (*node)->next;
-		(*msh)->env_lst = *node;
-		free(tmp->name);
-		free(tmp->value);
-		free(tmp);
+		(*msh)->env_lst = (*node)->next;;
+		free((*node)->name);
+		free((*node)->value);
+		free(*node);
 	}
 	else
 	{
@@ -167,6 +178,7 @@ void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
 		free((*node)->name);
 		free((*node)->value);
 		free(*node);
+		*node = NULL;
 	}
 }
 
@@ -188,7 +200,10 @@ void	builtin_unsetenv(t_minishell *msh, int ind)
 	while (env_lst)
 	{
 		if (!strcmp(args[1], env_lst->name))
+		{
 			ft_unsetenv(&msh, &env_lst, &prev);
+			break ;
+		}
 		prev = env_lst;
 		env_lst = env_lst->next;
 	}

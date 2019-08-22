@@ -74,7 +74,7 @@ void	read_line(t_minishell *msh, int *q)
 	line = NULL;
 	if (get_next_line(0, &line) < 0)
 	{
-		ft_dprintf(2, "Error gnl\n");
+		ft_dprintf(2, "Error: gnl\n");
 		free(line);
 		exit(EXIT_FAILURE);
 	}
@@ -107,14 +107,15 @@ void	read_cmd(t_minishell *msh)
 
 void	error_fork(t_minishell *msh)
 {
-	ft_dprintf(2, "Error fork\n");
+	ft_dprintf(2, "Error: fork() cannot fork a process\n");
 	free_msh(msh);
 	free(msh->line);
 	free(msh->cmd_path);
+	free(msh->funct_tab);
+	free_dbl(&msh->env);
 	free_dbl(&msh->builtin_name);
 	free_diclst(&msh->env_lst);
 	free_diclst(&msh->var_lst);
-	free(msh->funct_tab);
 	exit(EXIT_FAILURE);
 }
 
@@ -158,13 +159,14 @@ int		check_err(t_minishell *msh, int mode)
 void	ft_execve(t_minishell *msh, int ind)
 {
 
-	free_dbl(&msh->env);
-	msh->env = set_env(msh);
+	//free_dbl(&msh->env);
+	//msh->env = set_env(msh);
 	if (check_err(msh, NO_FOUND))
 		exit(EXIT_FAILURE);
 	if  (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
 	{
-		ft_putstr("Error execve\n");
+		print_chars(msh->cmd_path);
+		ft_putstr(": failed execution\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -254,7 +256,7 @@ void	exec_cmd(t_minishell *msh)
 	int		ind;
 
 	ind = 0;
-
+	
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
 		&& set_varlst(msh, msh->args[ind]))
 		ind++;

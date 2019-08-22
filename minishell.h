@@ -69,7 +69,7 @@ void		prompt_dir(t_minishell *msh);
 int			get_argc(char **args);
 int			is_builtin(t_minishell *msh, char *cmd_name);
 t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type);
-void		add_diclst(t_diclst **dic_lst, char *name, char *value);
+void		add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value);
 void		set_envlst(t_minishell *msh, char **env);
 char		*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
 void		free_msh(t_minishell *msh);
@@ -86,4 +86,5 @@ void		print_chars(char *str);
 void		print_2d(char **str); //!!!!!!
 void		free_funct_tab(builtin_func **funct_tab);
 void		free_diclst(t_diclst **begin);
+void		malloc_error(t_minishell *msh);
 #endif

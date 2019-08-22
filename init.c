@@ -2,7 +2,9 @@
 
 static void	set_builtin(t_minishell *msh)
 {
-	msh->builtin_name = (char**)malloc(sizeof(char*) * (BUILTIN_NUM + 1));
+	if (!(msh->builtin_name = (char**)malloc(sizeof(char*)
+		* (BUILTIN_NUM + 1))))
+		malloc_error(msh);
 	msh->builtin_name[BUILTIN_NUM] = NULL;
 	msh->builtin_name[0] = ft_strdup("cd");
 	msh->builtin_name[1] = ft_strdup("exit");
@@ -10,7 +12,9 @@ static void	set_builtin(t_minishell *msh)
 	msh->builtin_name[3] = ft_strdup("setenv");
 	msh->builtin_name[4] = ft_strdup("unsetenv");
 	msh->builtin_name[5] = ft_strdup("echo");
-	msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func) * (BUILTIN_NUM + 1));
+	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
+		* (BUILTIN_NUM + 1))))
+		malloc_error(msh);
 	msh->funct_tab[BUILTIN_NUM] = NULL;
 	msh->funct_tab[0] = &builtin_cd;
 	msh->funct_tab[1] = &builtin_exit;
@@ -23,15 +27,27 @@ static void	set_builtin(t_minishell *msh)
 static void	set_oldpwd(t_minishell *msh)
 {
 	t_diclst	*node;
+	char		*buf;
 
-	node = get_diclst_val(msh, "OLDPWD", 0);
-	msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
+	buf = NULL;
+	msh->pwd = getcwd(buf, CWD_BUF_SIZE);;
+	node = get_diclst_val(msh, "PWD", 0);
 	if (node)
 	{
 		free(node->value);
 		node->value = ft_strdup(msh->pwd);
-		msh->oldpwd = get_diclst_val(msh, "OLDPWD", 0)->value;
 	}
+	else
+		add_diclst(msh, &msh->env_lst, "PWD", msh->pwd);
+	node = get_diclst_val(msh, "OLDPWD", 0);
+	if (node)
+	{
+		free(node->value);
+		node->value = ft_strdup(msh->pwd);
+	}
+	else
+		add_diclst(msh, &msh->env_lst, "OLDPWD", msh->pwd);
+	free(msh->pwd);
 }
 
 void	init_qparam(t_minishell *msh)
