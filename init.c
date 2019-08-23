@@ -12,6 +12,7 @@ static void	set_builtin(t_minishell *msh)
 	msh->builtin_name[3] = ft_strdup("setenv");
 	msh->builtin_name[4] = ft_strdup("unsetenv");
 	msh->builtin_name[5] = ft_strdup("echo");
+	msh->builtin_name[6] = ft_strdup("source");
 	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
 		* (BUILTIN_NUM + 1))))
 		malloc_error(msh);
@@ -22,6 +23,7 @@ static void	set_builtin(t_minishell *msh)
 	msh->funct_tab[3] = &builtin_setenv;
 	msh->funct_tab[4] = &builtin_unsetenv;
 	msh->funct_tab[5] = &builtin_echo;
+	msh->funct_tab[6] = &builtin_source;
 }
 
 static void	set_oldpwd(t_minishell *msh)

@@ -60,7 +60,7 @@ char	*ft_strjoin_sep(const char *s1, const char *s2, char *sep)
 	str = NULL;
 	strsep = ft_strjoin(s1, sep);
 	str = ft_strjoin(strsep, s2);
-	free(strsep);
+	ft_strdel(&strsep);
 	return (str);
 }
 
@@ -93,7 +93,7 @@ char	*home_to_tild(t_minishell *msh, char *str)
 		new_str = ft_strdup(str + len);
 		tmp = new_str;
 		new_str = ft_strjoin("~", new_str);
-		free(tmp);
+		ft_strdel(&tmp);
 	}
 	return (new_str);
 }
@@ -123,8 +123,8 @@ void	prompt_dir(t_minishell *msh)
 	ft_putstr(cwd_tild);
 	ft_putstr("\033[m ");
 	ft_putstr("$> ");
-	free(cwd);
-	free(cwd_tild);
+	ft_strdel(&cwd);
+	ft_strdel(&cwd_tild);
 }
 
 void	simplify_cmd(t_minishell *msh)
@@ -153,7 +153,7 @@ void	simplify_cmd(t_minishell *msh)
 	}
 	if (str)
 	{
-		free(msh->line);
+		ft_strdel(&msh->line);
 		msh->line = str;
 	}
 }

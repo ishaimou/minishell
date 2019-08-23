@@ -107,10 +107,6 @@ void		builtin_exit(t_minishell *msh, int ind)
 	}
 	ret = args[1] ? ft_atoi(args[1]) : EXIT_SUCCESS;
 	free_msh(msh);
-	free_dbl(&msh->builtin_name);
-	free_diclst(&msh->env_lst);
-	free_diclst(&msh->var_lst);
-	free(msh->funct_tab);
 	exit(ret);
 }
 
@@ -228,4 +224,66 @@ void	builtin_echo(t_minishell *msh, int ind)
 		args++;
 	}
 	ft_putchar('\n');
+}
+
+char	**ft_strddup(char **str)
+{
+	char	**ddup;
+	int		argc;
+	int		i;
+
+	ddup = NULL;
+	if (str)
+	{
+		argc = get_argc(str);
+		ddup = (char**)malloc(sizeof(char*) * (argc + 1));
+		ddup[argc] = NULL;
+		i = 0;
+		while (str[i])
+		{
+			ddup[i] = ft_strdup(str[i]);
+			i++;
+		}
+	}
+	return (ddup);
+}
+
+void	builtin_source(t_minishell *msh, int ind)
+{
+	int		argc;
+	char	**args;
+	char	*line;
+	int		fd;
+	char	*cpy_line;
+	char	**cpy_args;
+	char	**cpy_cmds;
+
+	args = msh->args + ind;
+	if ((argc = get_argc(args)) != 2)
+	{
+		ft_printf("source: usage: source [FILE]\n");
+		return ;
+	}
+	if ((fd = open(args[1], O_RDONLY)) == -1)
+		return ;
+	cpy_line = ft_strdup(msh->line);
+	cpy_args = ft_strddup(msh->args);
+	cpy_cmds = ft_strddup(msh->cmds);
+	ft_strdel(&msh->line);
+	free_dbl(&msh->args);
+	free_dbl(&msh->cmds);
+	msh->sflag = 1;
+	while (get_next_line(fd, &line) > 0)
+	{
+		msh->line = line;
+		parse_exec_cmd(msh);
+		ft_strdel(&msh->line);
+		free_dbl(&msh->args);
+		free_dbl(&msh->cmds);
+	}
+	ft_strdel(&line);
+	msh->line = cpy_line;
+	msh->args = cpy_args;
+	msh->cmds = cpy_cmds;
+	close(fd);
 }

@@ -8,6 +8,7 @@
 # include <sys/stat.h>
 # include <signal.h>
 # include <setjmp.h>
+# include <fcntl.h>
 # include "libft.h"
 
 # include <stdio.h> //!!!!!!
@@ -17,7 +18,7 @@
 # define NO_PERM 2
 # define NO_FOUND 3
 # define CWD_BUF_SIZE 2048 
-# define BUILTIN_NUM 6 
+# define BUILTIN_NUM 7 
 
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
@@ -63,6 +64,7 @@ void		builtin_echo(t_minishell *msh, int ind);
 void		builtin_env(t_minishell *msh, int ind);
 void		builtin_setenv(t_minishell *msh, int ind);
 void		builtin_unsetenv(t_minishell *msh, int ind);
+void		builtin_source(t_minishell *msh, int ind);
 void		init_msh(t_minishell *msh, int ac, char **av, char **env);
 char		**set_env(t_minishell *msh);
 void		prompt_dir(t_minishell *msh);
@@ -87,4 +89,5 @@ void		print_2d(char **str); //!!!!!!
 void		free_funct_tab(builtin_func **funct_tab);
 void		free_diclst(t_diclst **begin);
 void		malloc_error(t_minishell *msh);
+void		parse_exec_cmd(t_minishell *msh);
 #endif

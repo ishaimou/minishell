@@ -74,8 +74,7 @@ void	read_line(t_minishell *msh, int *q)
 	line = NULL;
 	if (get_next_line(0, &line) < 0)
 	{
-		ft_dprintf(2, "Error: gnl\n");
-		free(line);
+		ft_dprintf(2, "Error: gnl cannot read from fd\n");
 		exit(EXIT_FAILURE);
 	}
 	*q = handle_quotes(msh, line);
@@ -83,8 +82,8 @@ void	read_line(t_minishell *msh, int *q)
 	{
 		tmp = msh->line;
 		msh->line = ft_strjoin_sep(msh->line, line, "\n");
-		free(tmp);
-		free(line);
+		ft_strdel(&tmp);
+		ft_strdel(&line);
 	}
 	else
 		msh->line = line;
@@ -109,13 +108,6 @@ void	error_fork(t_minishell *msh)
 {
 	ft_dprintf(2, "Error: fork() cannot fork a process\n");
 	free_msh(msh);
-	free(msh->line);
-	free(msh->cmd_path);
-	free(msh->funct_tab);
-	free_dbl(&msh->env);
-	free_dbl(&msh->builtin_name);
-	free_diclst(&msh->env_lst);
-	free_diclst(&msh->var_lst);
 	exit(EXIT_FAILURE);
 }
 
@@ -159,8 +151,6 @@ int		check_err(t_minishell *msh, int mode)
 void	ft_execve(t_minishell *msh, int ind)
 {
 
-	//free_dbl(&msh->env);
-	//msh->env = set_env(msh);
 	if (check_err(msh, NO_FOUND))
 		exit(EXIT_FAILURE);
 	if  (execve(msh->cmd_path, (msh->args + ind), msh->env) < 0)
@@ -207,8 +197,8 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 		{
 			if (!ft_strcmp(res->d_name, msh->cmd_path))
 			{
-				rm_trailing_slash(&paths[i]);  // a repenser
-				free(msh->cmd_path);
+				rm_trailing_slash(&paths[i]);
+				ft_strdel(&msh->cmd_path);
 				msh->cmd_path = ft_strjoin_sep(paths[i], res->d_name, "/");
 				(void)closedir(dirp);
 				return ;
@@ -294,7 +284,7 @@ void	parse_exec_cmd(t_minishell *msh)
 		if (*msh->args)
 			exec_cmd(msh);
 		free_dbl(&msh->args);
-		free(msh->cmd_path);
+		ft_strdel(&msh->cmd_path);
 		i++;
 	}
 }
@@ -317,7 +307,7 @@ int		main(int ac, char *av[], char *env[])
 		prompt_dir(&msh);
 		read_cmd(&msh);
 		parse_exec_cmd(&msh);
-		free(msh.line);
+		ft_strdel(&msh.line);
 		free_dbl(&msh.cmds);
 	}
 	return (0);
