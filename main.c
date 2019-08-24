@@ -244,29 +244,33 @@ int		fetch_alias(t_minishell *msh)
 {
 	int		fd;
 	char	*line;
-	char	*str;
 	char	**args;
-	int		argc;
+	char	*cmd;
 
 	if ((fd = open("./alias.config", O_RDONLY)) == -1)
 		return (0);
 	line = NULL;
 	while (get_next_line(fd, &line) > 0)
 	{
-		args = ft_strsplit(line, '=');
+		cmd = ft_strdup(line);
+		simplify_cmd(&cmd);
+		args = ft_strsplit(cmd, '=');
 		if (args[0] && !ft_strcmp(args[0], msh->args[0]))
 		{
 			ft_strdel(&msh->args[0]);
-			argc = get_argc(args);
-			if (argc == 2)
+			if (args[1])
 				msh->args[0] = ft_strdup(args[1]);
 			else
 				msh->args[0] = ft_strnew(0);
 			ft_strdel(&line);
+			free_dbl(&args);
+			free(cmd);
 			close(fd);
 			return (1);
 		}
 		ft_strdel(&line);
+		free(cmd);
+		free_dbl(&args);
 	}
 	ft_strdel(&line);
 	close(fd);
@@ -331,12 +335,18 @@ char	**split_alias(t_minishell *msh)
 		return (NULL);
 	line = ft_strtrim(msh->line);
 	if (ft_strncmp(line, "alias", 5))
+	{
+		ft_strdel(&line);
 		return (NULL);
+	}
 	i = 0;
 	while (line[i] && !ft_isblank(line[i]))
 		i++;
 	if (!line[i])
+	{
+		ft_strdel(&line);
 		return (NULL);
+	}
 	if (!(tab_str = (char**)malloc(sizeof(char*) * 3)))
 		malloc_error(msh);
 	tab_str[0] = ft_strdup("alias");
@@ -351,8 +361,8 @@ void	parse_exec_cmd(t_minishell *msh)
 	int		i;
 
 	i = 0;
-	if (msh->sflag)
-		simplify_cmd(msh);
+	if (msh->sflag && !ft_strstr(msh->line, "alias"))
+		simplify_cmd(&msh->line);
 	msh->cmds = ft_strsplit(msh->line, ';');
 	if (!msh->cmds[0])
 		return ;

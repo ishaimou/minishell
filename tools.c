@@ -127,13 +127,13 @@ void	prompt_dir(t_minishell *msh)
 	ft_strdel(&cwd_tild);
 }
 
-void	simplify_cmd(t_minishell *msh)
+void	simplify_cmd(char **cmd)
 {
 	char	*line;
 	char	*str;
 	
 	str = NULL;
-	line = msh->line;
+	line = *cmd;
 	while (*line)
 	{
 		while (*line && *line != '\'' && *line != '\"')
@@ -153,7 +153,7 @@ void	simplify_cmd(t_minishell *msh)
 	}
 	if (str)
 	{
-		ft_strdel(&msh->line);
-		msh->line = str;
+		ft_strdel(cmd);
+		*cmd = str;
 	}
 }
