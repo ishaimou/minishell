@@ -240,13 +240,68 @@ int		find_path_cmd(t_minishell *msh, int ind)
 	return (0);
 }
 
+int		fetch_alias(t_minishell *msh)
+{
+	int		fd;
+	char	*line;
+	char	*str;
+	char	**args;
+	int		argc;
+
+	if ((fd = open("./alias.config", O_RDONLY)) == -1)
+		return (0);
+	line = NULL;
+	while (get_next_line(fd, &line) > 0)
+	{
+		args = ft_strsplit(line, '=');
+		if (args[0] && !ft_strcmp(args[0], msh->args[0]))
+		{
+			ft_strdel(&msh->args[0]);
+			argc = get_argc(args);
+			if (argc == 2)
+				msh->args[0] = ft_strdup(args[1]);
+			else
+				msh->args[0] = ft_strnew(0);
+			ft_strdel(&line);
+			close(fd);
+			return (1);
+		}
+		ft_strdel(&line);
+	}
+	ft_strdel(&line);
+	close(fd);
+	return (0);
+}
+
+void	split_n_join(t_minishell *msh)
+{
+	char	*str;
+	char	*tmp;
+	int		i;
+
+	i = 0;
+	str = ft_strnew(0);
+	while (msh->args[i])
+	{
+		tmp = str;
+		str = ft_strjoin_sep(str, msh->args[i], " ");
+		free(tmp);
+		i++;
+	}
+	free_dbl(&msh->args);
+	msh->args = ft_split_whitespaces(str);
+	ft_strdel(&str);
+}
+
 void	exec_cmd(t_minishell *msh)
 {
 	int		pos;
 	int		ind;
 
 	ind = 0;
-	
+
+	if (fetch_alias(msh))
+		split_n_join(msh);
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
 		&& set_varlst(msh, msh->args[ind]))
 		ind++;
@@ -266,6 +321,31 @@ void	exec_cmd(t_minishell *msh)
 	}
 }
 
+char	**split_alias(t_minishell *msh)
+{
+	char	**tab_str;
+	char	*line;
+	int		i;
+	
+	if (!strstr(msh->line, "alias"))
+		return (NULL);
+	line = ft_strtrim(msh->line);
+	if (ft_strncmp(line, "alias", 5))
+		return (NULL);
+	i = 0;
+	while (line[i] && !ft_isblank(line[i]))
+		i++;
+	if (!line[i])
+		return (NULL);
+	if (!(tab_str = (char**)malloc(sizeof(char*) * 3)))
+		malloc_error(msh);
+	tab_str[0] = ft_strdup("alias");
+	tab_str[1] = ft_strtrim(line + i);
+	tab_str[2] = NULL;
+	ft_strdel(&line);
+	return (tab_str);
+}
+
 void	parse_exec_cmd(t_minishell *msh)
 {
 	int		i;
@@ -280,7 +360,8 @@ void	parse_exec_cmd(t_minishell *msh)
 	{
 		msh->argc = 0;
 		msh->cmd_path = NULL;
-		msh->args = ft_split_whitespaces(msh->cmds[i]);
+		if (!(msh->args = split_alias(msh)))
+			msh->args = ft_split_whitespaces(msh->cmds[i]);
 		if (*msh->args)
 			exec_cmd(msh);
 		free_dbl(&msh->args);

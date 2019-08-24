@@ -18,7 +18,7 @@
 # define NO_PERM 2
 # define NO_FOUND 3
 # define CWD_BUF_SIZE 2048 
-# define BUILTIN_NUM 7 
+# define BUILTIN_NUM 8 
 
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
@@ -65,6 +65,7 @@ void		builtin_env(t_minishell *msh, int ind);
 void		builtin_setenv(t_minishell *msh, int ind);
 void		builtin_unsetenv(t_minishell *msh, int ind);
 void		builtin_source(t_minishell *msh, int ind);
+void		builtin_alias(t_minishell *msh, int ind);
 void		init_msh(t_minishell *msh, int ac, char **av, char **env);
 char		**set_env(t_minishell *msh);
 void		prompt_dir(t_minishell *msh);
