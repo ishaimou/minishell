@@ -27,6 +27,32 @@ void	sigint_handler(int signo)
 	siglongjmp(sig_env, 1337);
 }
 
+void	quotes(t_minishell *msh, char *line, int i)
+{
+	if (line[i] == '\'' && !msh->qflag && !msh->dquote)
+	{
+		msh->quote++;
+		msh->qflag = 1;
+		msh->sflag = 1;
+	}
+	else if (line[i] == '\'' && msh->qflag)
+	{
+		msh->quote--;
+		msh->qflag = 0;
+	}
+	else if (line[i] == '\"' && !msh->dflag && !msh->quote)
+	{
+		msh->dquote++;
+		msh->dflag = 1;
+		msh->sflag = 1;
+	}
+	else if (line[i] == '\"' && msh->dflag)
+	{
+		msh->dquote--;
+		msh->dflag = 0;
+	}
+}
+
 int		handle_quotes(t_minishell *msh, char *line)
 {
 	int		i;
@@ -34,28 +60,7 @@ int		handle_quotes(t_minishell *msh, char *line)
 	i = 0;
 	while (line[i])
 	{	
-		if (line[i] == '\'' && !msh->qflag && !msh->dquote)
-		{
-			msh->quote++;
-			msh->qflag = 1;
-			msh->sflag = 1;
-		}
-		else if (line[i] == '\'' && msh->qflag)
-		{
-			msh->quote--;
-			msh->qflag = 0;
-		}
-		else if (line[i] == '\"' && !msh->dflag && !msh->quote)
-		{
-				msh->dquote++;
-				msh->dflag = 1;
-				msh->sflag = 1;
-		}
-		else if (line[i] == '\"' && msh->dflag)
-		{
-			msh->dquote--;
-			msh->dflag = 0;
-		}
+		quotes(msh, line, i);
 		i++;
 	}
 	if (msh->quote)
@@ -70,7 +75,7 @@ void	read_line(t_minishell *msh, int *q)
 {
 	char	*line;
 	char	*tmp;
-	
+
 	line = NULL;
 	if (get_next_line(0, &line) < 0)
 	{
@@ -188,11 +193,8 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 	i = 0;
 	while (paths[i])
 	{
-		if (!(dirp = opendir(paths[i])))
-		{
-			i++;
+		if (!(dirp = opendir(paths[i])) && ++i)
 			continue ;
-		}
 		while ((res = readdir(dirp)))
 		{
 			if (!ft_strcmp(res->d_name, msh->cmd_path))
@@ -209,23 +211,13 @@ void	get_cmd_path(t_minishell *msh, char **paths)
 	}
 }
 
-int		find_path_cmd(t_minishell *msh, int ind)
+void	find_path(t_minishell *msh, int i)
 {
 	char			**path_env;
 	char			**paths;
-	int				i;
 
 	path_env = NULL;
 	paths = NULL;
-	i = 0;
-	msh->env = set_env(msh);
-	msh->cmd_path = ft_strdup(msh->args[ind]);
-	if (ft_strchr(msh->cmd_path, '/'))
-		return (check_err(msh, 0));
-	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
-		i++;
-	if (!msh->env[i])
-		return (0) ;
 	path_env = ft_strsplit(msh->env[i], '=');
 	if (*path_env)
 	{
@@ -237,6 +229,49 @@ int		find_path_cmd(t_minishell *msh, int ind)
 		get_cmd_path(msh, paths);
 		free_dbl(&paths);
 	}
+}
+
+int		find_path_cmd(t_minishell *msh, int ind)
+{
+	int				i;
+
+	i = 0;
+	msh->env = set_env(msh);
+	msh->cmd_path = ft_strdup(msh->args[ind]);
+	if (ft_strchr(msh->cmd_path, '/'))
+		return (check_err(msh, 0));
+	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
+		i++;
+	if (!msh->env[i])
+		return (0) ;
+	find_path(msh, i);
+	return (0);
+}
+
+int		get_alias(t_minishell *msh, char **line, int fd)
+{
+	char	*cmd;
+	char	**args;
+
+	cmd = ft_strdup(*line);
+	simplify_cmd(&cmd);
+	args = ft_strsplit(cmd, '=');
+	if (args[0] && !ft_strcmp(args[0], msh->args[0]))
+	{
+		ft_strdel(&msh->args[0]);
+		if (args[1])
+			msh->args[0] = ft_strdup(args[1]);
+		else
+			msh->args[0] = ft_strnew(0);
+		ft_strdel(line);
+		free_dbl(&args);
+		free(cmd);
+		close(fd);
+		return (1);
+	}
+	ft_strdel(line);
+	free(cmd);
+	free_dbl(&args);
 	return (0);
 }
 
@@ -244,34 +279,13 @@ int		fetch_alias(t_minishell *msh)
 {
 	int		fd;
 	char	*line;
-	char	**args;
-	char	*cmd;
 
 	if ((fd = open("./alias.config", O_RDONLY)) == -1)
 		return (0);
 	line = NULL;
 	while (get_next_line(fd, &line) > 0)
-	{
-		cmd = ft_strdup(line);
-		simplify_cmd(&cmd);
-		args = ft_strsplit(cmd, '=');
-		if (args[0] && !ft_strcmp(args[0], msh->args[0]))
-		{
-			ft_strdel(&msh->args[0]);
-			if (args[1])
-				msh->args[0] = ft_strdup(args[1]);
-			else
-				msh->args[0] = ft_strnew(0);
-			ft_strdel(&line);
-			free_dbl(&args);
-			free(cmd);
-			close(fd);
+		if (get_alias(msh, &line, fd))
 			return (1);
-		}
-		ft_strdel(&line);
-		free(cmd);
-		free_dbl(&args);
-	}
 	ft_strdel(&line);
 	close(fd);
 	return (0);
@@ -303,11 +317,10 @@ void	exec_cmd(t_minishell *msh)
 	int		ind;
 
 	ind = 0;
-
 	if (fetch_alias(msh))
 		split_n_join(msh);
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
-		&& set_varlst(msh, msh->args[ind]))
+			&& set_varlst(msh, msh->args[ind]))
 		ind++;
 	handle_exp(msh);
 	if (!msh->args[ind] || !msh->args[ind][0])
@@ -325,12 +338,24 @@ void	exec_cmd(t_minishell *msh)
 	}
 }
 
-char	**split_alias(t_minishell *msh)
+char	**alloc_alias(t_minishell *msh, char **line, int i)
 {
 	char	**tab_str;
+
+	if (!(tab_str = (char**)malloc(sizeof(char*) * 3)))
+		malloc_error(msh);
+	tab_str[0] = ft_strdup("alias");
+	tab_str[1] = ft_strtrim(*line + i);
+	tab_str[2] = NULL;
+	ft_strdel(line);
+	return (tab_str);
+}
+
+char	**split_alias(t_minishell *msh)
+{
 	char	*line;
 	int		i;
-	
+
 	if (!strstr(msh->line, "alias"))
 		return (NULL);
 	line = ft_strtrim(msh->line);
@@ -347,13 +372,7 @@ char	**split_alias(t_minishell *msh)
 		ft_strdel(&line);
 		return (NULL);
 	}
-	if (!(tab_str = (char**)malloc(sizeof(char*) * 3)))
-		malloc_error(msh);
-	tab_str[0] = ft_strdup("alias");
-	tab_str[1] = ft_strtrim(line + i);
-	tab_str[2] = NULL;
-	ft_strdel(&line);
-	return (tab_str);
+	return (alloc_alias(msh, &line, i));
 }
 
 void	parse_exec_cmd(t_minishell *msh)
@@ -383,7 +402,7 @@ void	parse_exec_cmd(t_minishell *msh)
 int		main(int ac, char *av[], char *env[])
 {
 	t_minishell		msh;
-	
+
 	init_msh(&msh, ac, av, env);
 	signal(SIGINT, sigint_handler);
 	while (IS_TRUE)
