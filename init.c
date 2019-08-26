@@ -1,5 +1,21 @@
 #include "minishell.h"
 
+static void	set_builtin_funct(t_minishell *msh)
+{
+	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
+		* (BUILTIN_NUM + 1))))
+		malloc_error(msh);
+	msh->funct_tab[BUILTIN_NUM] = NULL;
+	msh->funct_tab[0] = &builtin_cd;
+	msh->funct_tab[1] = &builtin_exit;
+	msh->funct_tab[2] = &builtin_env;
+	msh->funct_tab[3] = &builtin_setenv;
+	msh->funct_tab[4] = &builtin_unsetenv;
+	msh->funct_tab[5] = &builtin_echo;
+	msh->funct_tab[6] = &builtin_source;
+	msh->funct_tab[7] = &builtin_alias;
+}
+
 static void	set_builtin(t_minishell *msh)
 {
 	if (!(msh->builtin_name = (char**)malloc(sizeof(char*)
@@ -14,18 +30,7 @@ static void	set_builtin(t_minishell *msh)
 	msh->builtin_name[5] = ft_strdup("echo");
 	msh->builtin_name[6] = ft_strdup("source");
 	msh->builtin_name[7] = ft_strdup("alias");
-	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
-		* (BUILTIN_NUM + 1))))
-		malloc_error(msh);
-	msh->funct_tab[BUILTIN_NUM] = NULL;
-	msh->funct_tab[0] = &builtin_cd;
-	msh->funct_tab[1] = &builtin_exit;
-	msh->funct_tab[2] = &builtin_env;
-	msh->funct_tab[3] = &builtin_setenv;
-	msh->funct_tab[4] = &builtin_unsetenv;
-	msh->funct_tab[5] = &builtin_echo;
-	msh->funct_tab[6] = &builtin_source;
-	msh->funct_tab[7] = &builtin_alias;
+	set_builtin_funct(msh);
 }
 
 static void	set_oldpwd(t_minishell *msh)

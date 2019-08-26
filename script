@@ -1,0 +1,4 @@
+ls ; ls
+foo=bar
+echo $foo
+date

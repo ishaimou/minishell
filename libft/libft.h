@@ -88,6 +88,7 @@ int					ft_strequ(char const *s1, char const *s2);
 int					ft_strnequ(char const *s1, char const *s2, size_t n);
 char				*ft_strsub(char const *s, unsigned int start, size_t len);
 char				*ft_strjoin(char const *s1, char const *s2);
+char				*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
 char				*ft_strtrim(char const *s);
 char				**ft_strsplit(char const *s, char c);
 char				**ft_split_whitespaces(char const *s);
@@ -121,6 +122,7 @@ int					ft_strncmp(const char *s1, const char *s2, size_t n);
 char				*ft_strchr(const char *s, int c);
 char				*ft_strrchr(const char *s, int c);
 char				*ft_strpbrk(const char *s1, const char *s2);
+char				**ft_strddup(char **str);
 char				*ft_strdup(const char *src);
 char				*ft_strndup(const char *src, int n);
 int					ft_atoi(const char *str);
@@ -156,5 +158,6 @@ char				*ft_strpower(int base, int exponent, int x);
 int					ft_max(int a, int b);
 int					ft_min(int a, int b);
 char				*ft_poslltoa(long long int n);
+int					get_argc(char **args);
 
 #endif

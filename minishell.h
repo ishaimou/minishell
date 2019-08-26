@@ -11,14 +11,11 @@
 # include <fcntl.h>
 # include "libft.h"
 
-# include <stdio.h> //!!!!!!
-
-# define IS_TRUE 1
 # define NO_FILE_DIR 1
 # define NO_PERM 2
 # define NO_FOUND 3
-# define CWD_BUF_SIZE 2048 
 # define BUILTIN_NUM 8 
+# define CWD_BUF_SIZE 2048 
 
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
@@ -67,27 +64,34 @@ void		builtin_unsetenv(t_minishell *msh, int ind);
 void		builtin_source(t_minishell *msh, int ind);
 void		builtin_alias(t_minishell *msh, int ind);
 void		init_msh(t_minishell *msh, int ac, char **av, char **env);
-char		**set_env(t_minishell *msh);
+void		init_qparam(t_minishell *msh);
 void		prompt_dir(t_minishell *msh);
-int			get_argc(char **args);
 int			is_builtin(t_minishell *msh, char *cmd_name);
 t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type);
 void		add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value);
 void		set_envlst(t_minishell *msh, char **env);
-char		*ft_strjoin_sep(const char *s1, const char *s2, char *sep);
-void		free_msh(t_minishell *msh);
-void		free_dbl(char ***tab);
-void		init_qparam(t_minishell *msh);
-void		rm_trailing_slash(char **path);
-void		simplify_cmd(char **cmd);
-char		*home_to_tild(t_minishell *msh, char *str);
-void		handle_exp(t_minishell *msh);
+char		**set_env(t_minishell *msh);
 void		get_value(t_minishell *msh, char **arg, char *ptr);
 int			set_varlst(t_minishell *msh, char *arg);
-void		print_chars(char *str);
-void		print_2d(char **str); //!!!!!!
+void		handle_exp(t_minishell *msh);
+void		simplify_cmd(char **cmd);
+void		rm_trailing_slash(char **path);
+char		*home_to_tild(t_minishell *msh, char *str);
+void		free_dbl(char ***tab);
+void		free_msh(t_minishell *msh);
 void		free_funct_tab(builtin_func **funct_tab);
 void		free_diclst(t_diclst **begin);
 void		malloc_error(t_minishell *msh);
+void		fork_error(t_minishell *msh);
+int			check_err(t_minishell *msh, int mode);
 void		parse_exec_cmd(t_minishell *msh);
+void		launch_cmd(t_minishell *msh, int ind);
+void		read_cmd(t_minishell *msh);
+void		realloc_args(t_minishell *msh);
+void		split_n_join(t_minishell *msh);
+char		**split_alias(t_minishell *msh);
+int			fetch_alias(t_minishell *msh);
+void		print_chars(char *str);
+void		print_2d(char **str); //!!!!!!
+
 #endif

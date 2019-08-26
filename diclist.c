@@ -1,5 +1,18 @@
 #include "minishell.h"
 
+static int		diclst_size(t_diclst *begin_list)
+{
+	int		i;
+
+	i = 0;
+	while (begin_list)
+	{
+		begin_list = begin_list->next;
+		i++;
+	}
+	return (i);
+}
+
 t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type)
 {
 	t_diclst	*tmp;
@@ -39,19 +52,6 @@ void	add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value)
 			tmp = tmp->next;
 		tmp->next = node;
 	}
-}
-
-int		diclst_size(t_diclst *begin_list)
-{
-	int		i;
-
-	i = 0;
-	while (begin_list)
-	{
-		begin_list = begin_list->next;
-		i++;
-	}
-	return (i);
 }
 
 void	set_envlst(t_minishell *msh, char **env)
