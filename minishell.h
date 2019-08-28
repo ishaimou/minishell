@@ -3,6 +3,7 @@
 
 # include <stdlib.h>
 # include <unistd.h>
+# include <stdio.h>
 # include <dirent.h>
 # include <sys/wait.h>
 # include <sys/stat.h>
@@ -14,7 +15,7 @@
 # define NO_FILE_DIR 1
 # define NO_PERM 2
 # define NO_FOUND 3
-# define BUILTIN_NUM 8 
+# define BUILTIN_NUM 9 
 # define CWD_BUF_SIZE 2048 
 
 static sigjmp_buf 				sig_env;
@@ -63,6 +64,7 @@ void		builtin_setenv(t_minishell *msh, int ind);
 void		builtin_unsetenv(t_minishell *msh, int ind);
 void		builtin_source(t_minishell *msh, int ind);
 void		builtin_alias(t_minishell *msh, int ind);
+void		builtin_help(t_minishell *msh, int ind);
 void		init_msh(t_minishell *msh, int ac, char **av, char **env);
 void		init_qparam(t_minishell *msh);
 void		prompt_dir(t_minishell *msh);

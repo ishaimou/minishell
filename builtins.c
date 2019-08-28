@@ -1,5 +1,21 @@
 #include "minishell.h"
 
+void		builtin_help(t_minishell *msh, int ind)
+{
+	ft_printf("%{BLUE}================================================== *** %{CYAN}MINISHELL%{eoc}");
+	ft_printf("%{BLUE}*** ==================================================%{eoc}\n\n\n");
+	ft_printf("SYNOPSIS\n\t./minishell\n\n");
+	ft_printf("DESCRIPTION\n\tMinishell is a minimalist interactive command line ");
+	ft_printf("interpreter that executes commands read from standard input.\n\n");
+	ft_printf("MANDATORY BUILTINS\n\tcd - echo - exit - env - setenv - unsetenv\n\n");
+	ft_printf("BONUS BUILTINS\n\tsource - alias - help\n\n");
+	ft_printf("LISTS\n\tA sequence of one or more commands separated by one semicolon.\n");
+	ft_printf("\t\tEXAMPLE: command1 ; command2 ; ...\n\n");
+	ft_printf("NOTES\n\tCommands separated by a ; are executed sequentially: ");
+	ft_printf("the minishell waits for each command to terminate in turn.\n\n");
+	ft_printf("\tUse man pages to learn about how to use any other UNIX commands.\n\n");
+}
+
 void		builtin_exit(t_minishell *msh, int ind)
 {
 	int		argc;

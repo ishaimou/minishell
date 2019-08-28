@@ -14,6 +14,7 @@ static void	set_builtin_funct(t_minishell *msh)
 	msh->funct_tab[5] = &builtin_echo;
 	msh->funct_tab[6] = &builtin_source;
 	msh->funct_tab[7] = &builtin_alias;
+	msh->funct_tab[8] = &builtin_help;
 }
 
 static void	set_builtin(t_minishell *msh)
@@ -30,6 +31,7 @@ static void	set_builtin(t_minishell *msh)
 	msh->builtin_name[5] = ft_strdup("echo");
 	msh->builtin_name[6] = ft_strdup("source");
 	msh->builtin_name[7] = ft_strdup("alias");
+	msh->builtin_name[8] = ft_strdup("help");
 	set_builtin_funct(msh);
 }
 
