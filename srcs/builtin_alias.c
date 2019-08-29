@@ -35,7 +35,7 @@ static int 	read_alias(char **args)
 	
 	if (!args[1])
 	{
-		if ((fd = open("alias.config", O_RDONLY)) == -1)
+		if ((fd = open(PATH, O_RDONLY)) == -1)
 			return (1);
 		line = NULL;
 		while (get_next_line(fd, &line) > 0)
@@ -50,7 +50,7 @@ static int 	read_alias(char **args)
 	return (0);
 }
 
-int		check_duplicat(char **args)
+static int		check_duplicat(char **args)
 {
 	char	**tab_str;
 	char	*line;
@@ -58,79 +58,54 @@ int		check_duplicat(char **args)
 	int		offset;
 
 	offset = 0;
-	if ((fd = open("./alias.config", O_RDONLY)) == -1)
+	if ((fd = open(PATH, O_RDONLY)) == -1)
 		return (0);	
 	line = NULL;
 	tab_str = ft_strsplit(args[1], '=');
-	if (*tab_str)
-	{
-		while (get_next_line(fd, &line) > 0)
-		{	
-			offset++;
-			if (!ft_strncmp(line, tab_str[0], ft_strlen(tab_str[0])))
-			{
-				ft_strdel(&line);
-				free_dbl(&tab_str);
-				close(fd);
-				return (offset);
-			}
+	while (get_next_line(fd, &line) > 0 && ++offset)
+	{	
+		if (!ft_strncmp(line, tab_str[0], ft_strlen(tab_str[0])))
+		{
 			ft_strdel(&line);
+			free_dbl(&tab_str);
+			close(fd);
+			return (offset);
 		}
 		ft_strdel(&line);
 	}
+	ft_strdel(&line);
 	free_dbl(&tab_str);
 	close(fd);
 	return (0);
 }
 
-void	rewrite_alias(char *str, int offset)
+static void	rewrite_alias(char *str, int offset)
 {
-	int		fd;
-	int		fdc;
 	int		num_line;
-	char	*line;
-	char	buff[BUFF_SIZE];
 	FILE	*f;
 	FILE	*fc;
-	char	*path = "./alias.config";
+	char	buff[BUFF_SIZE];
 
-	//f = fopen(path, "r");
-	//fc = fopen("./alias.copy", "w");
-	//if (!f || !fc)
-	//	return ;
-	fd = open("./alias.config", O_RDONLY);
-	fdc = open("./alias.copy", O_RDWR | O_APPEND | O_CREAT, 0644);
-	if (fd == -1 || fdc == -1)
+	f = fopen(PATH, "r");
+	fc = fopen("./alias.copy", "w");
+	if (!f || !fc)
 		return ;
-	line = NULL;
 	num_line = 0;
-	//ft_printf("$$$ string = %s $$$\n", str);
-	while (//fgets(buff, 1024, f)
-		get_next_line(fd, &line) > 0)
+	while (fgets(buff, BUFF_SIZE, f))
 	{
 		num_line++;
-		//ft_printf("### line = %s ###\n", line);
-		//ft_printf("===num_line=%d | offset=%d===\n", num_line, offset);
 		if (num_line == offset)
 		{
-			ft_putendl_fd(str, fdc);
-			//fputs(str, fc);
-			//fputs("\n", fc);
+			fputs(str, fc);
+			fputs("\n", fc);
 		}
 		else
-		{
-			ft_putendl_fd(line, fdc);
-			//fputs(buff, fc);
-		}
-		//ft_strdel(&line);
+			fputs(buff, fc);
 	}
-	//ft_strdel(&line);
-	close(fd);
-	close(fdc);
-	//fclose(f);
-	//fclose(fc);
-	remove(path);
-	rename("./alias.copy", path);
+	fclose(f);
+	fclose(fc);
+	remove(PATH);
+	rename("./alias.copy", PATH);
 }
 
 void	builtin_alias(t_minishell *msh, int ind)
@@ -142,12 +117,11 @@ void	builtin_alias(t_minishell *msh, int ind)
 	args = msh->args + ind;
 	if (read_alias(args))
 		return ;
-	//offset = 3;
 	if (check_assignement(&msh->args[ind], args[1]))
 		return ;
 	if (!(offset = check_duplicat(args)))
 	{
-		fd = open("./alias.config", O_RDWR | O_APPEND | O_CREAT, 0644);
+		fd = open(PATH, O_RDWR | O_APPEND | O_CREAT, 0644);
 		if (fd == -1)
 			return ;
 		ft_putendl_fd(args[1], fd);

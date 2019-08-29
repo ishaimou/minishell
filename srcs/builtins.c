@@ -2,6 +2,8 @@
 
 void		builtin_help(t_minishell *msh, int ind)
 {
+	(void)ind;
+	(void)msh;
 	ft_printf("%{BLUE}================================================== *** %{CYAN}MINISHELL%{eoc}");
 	ft_printf("%{BLUE}*** ==================================================%{eoc}\n\n\n");
 	ft_printf("SYNOPSIS\n\t./minishell\n\n");

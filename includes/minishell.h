@@ -17,6 +17,7 @@
 # define NO_FOUND 3
 # define BUILTIN_NUM 9 
 # define CWD_BUF_SIZE 2048 
+# define PATH "./alias.config"
 
 static sigjmp_buf 				sig_env;
 static volatile sig_atomic_t	jmp_flag = 0;
