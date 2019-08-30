@@ -74,7 +74,6 @@ t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type);
 void		add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value);
 void		set_envlst(t_minishell *msh, char **env);
 char		**set_env(t_minishell *msh);
-void		get_value(t_minishell *msh, char **arg, char *ptr);
 int			set_varlst(t_minishell *msh, char *arg);
 void		handle_exp(t_minishell *msh);
 void		simplify_cmd(char **cmd);
@@ -95,6 +94,5 @@ void		split_n_join(t_minishell *msh);
 char		**split_alias(t_minishell *msh);
 int			fetch_alias(t_minishell *msh);
 void		print_chars(char *str);
-void		print_2d(char **str); //!!!!!!
 
 #endif

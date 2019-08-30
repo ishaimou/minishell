@@ -37,7 +37,7 @@ int		set_varlst(t_minishell *msh, char *arg)
 	return (1);
 }
 
-static void	get_v(t_minishell *msh, char **tab_dollar, char **str)
+static void	get_value(t_minishell *msh, char **tab_dollar, char **str)
 {
 	t_diclst	*node;
 	char		*tmp;
@@ -58,20 +58,27 @@ static void	get_v(t_minishell *msh, char **tab_dollar, char **str)
 	}
 }
 
-void	get_value(t_minishell *msh, char **arg, char *ptr)
+static void	get_recursive_val(t_minishell *msh, char **arg, char *ptr)
 {
 	char		**tab_dollar;
 	char		*str;
 	int			i;
-
-	i = ptr - *arg;
-	str = ft_strndup(*arg, i);
-	tab_dollar = ft_strsplit(ptr, '$');
-	if (*tab_dollar)
-		get_v(msh, tab_dollar, &str);
-	free_dbl(&tab_dollar);
-	free(*arg);
-	*arg = str;
+	
+	if (*ptr != '$')
+		return ;
+	else if (*(ptr + 1) == '$')
+		get_recursive_val(msh, arg, ptr + 1);
+	else
+	{
+		i = ptr - *arg;
+		str = ft_strndup(*arg, i);
+		tab_dollar = ft_strsplit(ptr, '$');
+		if (*tab_dollar)
+			get_value(msh, tab_dollar, &str);
+		free_dbl(&tab_dollar);
+		free(*arg);
+		*arg = str;
+	}
 }
 
 void	handle_exp(t_minishell *msh)
@@ -88,7 +95,7 @@ void	handle_exp(t_minishell *msh)
 	while (msh->args[i])
 	{
 		while ((ptr = ft_strchr(msh->args[i], '$')))
-			get_value(msh, &msh->args[i], ptr);
+			get_recursive_val(msh, &msh->args[i], ptr);
 		if (msh->args[i][0] == '~')
 		{
 			tmp = msh->args[i];

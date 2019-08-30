@@ -1,24 +1,5 @@
 #include "minishell.h"
 
-//------------- TEMPORARY FUNCTIONS ---------------//
-
-void	print_2d(char **s)
-{
-	while (*s)
-		ft_printf("%s\n", *s++);
-}
-
-void	print_diclst(t_diclst	*dic_lst)
-{
-	while (dic_lst)
-	{
-		ft_printf("%s=%s\n", dic_lst->name, dic_lst->value);
-		dic_lst = dic_lst->next;
-	}
-}
-
-//------------------------------------------------//
-
 void	sigint_handler(int signo)
 {
 	(void)signo;
