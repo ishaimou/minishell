@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 04:44:54 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 04:50:18 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 04:57:08 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,12 @@
 # define CWD_BUF_SIZE 2048
 # define PATH "./alias.config"
 
-static sigjmp_buf				sig_env;
-static volatile sig_atomic_t	jmp_flag;
+static sigjmp_buf				g_sig_env;
+static volatile sig_atomic_t	g_jmp_flag = 0;
 
 typedef struct s_minishell	t_minishell;
 
-typedef void	(*builtin_func) (t_minishell *, int);
+typedef void	(*t_builtin_func) (t_minishell *, int);
 
 typedef struct		s_diclst
 {
@@ -66,7 +66,7 @@ struct				s_minishell
 	char			**builtin_name;
 	t_diclst		*env_lst;
 	t_diclst		*var_lst;
-	builtin_func	*funct_tab;
+	t_builtin_func	*funct_tab;
 };
 
 void				builtin_cd(t_minishell *msh, int ind);
@@ -94,7 +94,7 @@ void				rm_trailing_slash(char **path);
 char				*home_to_tild(t_minishell *msh, char *str);
 void				free_dbl(char ***tab);
 void				free_msh(t_minishell *msh);
-void				free_funct_tab(builtin_func **funct_tab);
+void				free_funct_tab(t_builtin_func **funct_tab);
 void				free_diclst(t_diclst **begin);
 void				malloc_error(t_minishell *msh);
 void				fork_error(t_minishell *msh);

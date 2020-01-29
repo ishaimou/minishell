@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:20 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 03:59:50 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 04:56:22 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 static void		set_builtin_funct(t_minishell *msh)
 {
-	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
+	if (!(msh->funct_tab = (t_builtin_func*)malloc(sizeof(t_builtin_func)
 		* (BUILTIN_NUM + 1))))
 		malloc_error(msh);
 	msh->funct_tab[BUILTIN_NUM] = NULL;
