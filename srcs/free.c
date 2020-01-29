@@ -1,12 +1,24 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   free.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:47:15 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:38:38 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-void    free_dbl(char ***tab)
+void			free_dbl(char ***tab)
 {
-	int		i;
+	int			i;
 
 	i = 0;
 	if (tab && *tab)
-	{	
+	{
 		while ((*tab)[i])
 		{
 			free((*tab)[i]);
@@ -18,9 +30,9 @@ void    free_dbl(char ***tab)
 	}
 }
 
-void	free_diclst(t_diclst **begin)
+void			free_diclst(t_diclst **begin)
 {
-	t_diclst 	*curr;
+	t_diclst	*curr;
 	t_diclst	*next;
 
 	if (begin && *begin)
@@ -38,7 +50,7 @@ void	free_diclst(t_diclst **begin)
 	}
 }
 
-void	free_msh(t_minishell *msh)
+void			free_msh(t_minishell *msh)
 {
 	ft_strdel(&msh->line);
 	ft_strdel(&msh->cmd_path);

@@ -1,9 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse_exec.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:47:29 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:44:45 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-static void	get_cmd_path(t_minishell *msh, char **paths)
+static void			get_cmd_path(t_minishell *msh, char **paths)
 {
-	int		i;
-	DIR		*dirp;
+	int				i;
+	DIR				*dirp;
 	struct dirent	*res;
 
 	i = 0;
@@ -27,7 +39,7 @@ static void	get_cmd_path(t_minishell *msh, char **paths)
 	}
 }
 
-static void	find_path(t_minishell *msh, int i)
+static void			find_path(t_minishell *msh, int i)
 {
 	char			**path_env;
 	char			**paths;
@@ -47,7 +59,7 @@ static void	find_path(t_minishell *msh, int i)
 	}
 }
 
-static int		find_path_cmd(t_minishell *msh, int ind)
+static int			find_path_cmd(t_minishell *msh, int ind)
 {
 	int				i;
 
@@ -59,20 +71,20 @@ static int		find_path_cmd(t_minishell *msh, int ind)
 	while (msh->env[i] && !ft_strstr(msh->env[i], "PATH"))
 		i++;
 	if (!msh->env[i])
-		return (0) ;
+		return (0);
 	find_path(msh, i);
 	return (0);
 }
 
-static void	exec_cmd(t_minishell *msh)
+static void			exec_cmd(t_minishell *msh)
 {
-	int		pos;
-	int		ind;
+	int				pos;
+	int				ind;
 
 	ind = 0;
 	if (fetch_alias(msh))
 		split_n_join(msh);
-	while (msh->args[ind] && ft_strchr(msh->args[ind], '=') 
+	while (msh->args[ind] && ft_strchr(msh->args[ind], '=')
 			&& set_varlst(msh, msh->args[ind]))
 		ind++;
 	handle_exp(msh);
@@ -91,9 +103,9 @@ static void	exec_cmd(t_minishell *msh)
 	}
 }
 
-void	parse_exec_cmd(t_minishell *msh)
+void				parse_exec_cmd(t_minishell *msh)
 {
-	int		i;
+	int				i;
 
 	i = 0;
 	if (msh->sflag && !ft_strstr(msh->line, "alias"))

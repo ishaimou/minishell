@@ -1,13 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   error.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:52 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:35:40 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-void	malloc_error(t_minishell *msh)
+void			malloc_error(t_minishell *msh)
 {
 	ft_dprintf(2, "Error: malloc() failed allocate memory\n");
 	free_msh(msh);
 	exit(EXIT_FAILURE);
 }
 
-void	fork_error(t_minishell *msh)
+void			fork_error(t_minishell *msh)
 {
 	ft_dprintf(2, "Error: fork() cannot fork a process\n");
 	free_msh(msh);
@@ -34,7 +46,7 @@ static int		ft_error(t_minishell *msh, int type)
 	return (1);
 }
 
-int		check_err(t_minishell *msh, int mode)
+int				check_err(t_minishell *msh, int mode)
 {
 	struct stat	file_stat;
 

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtin_alias.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:16 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 01:53:27 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static int	check_assignement(char **args, char *str)
@@ -28,11 +40,11 @@ static int	check_assignement(char **args, char *str)
 	return (0);
 }
 
-static int 	read_alias(char **args)
+static int	read_alias(char **args)
 {
 	char	*line;
 	int		fd;
-	
+
 	if (!args[1])
 	{
 		if ((fd = open(PATH, O_RDONLY)) == -1)
@@ -50,7 +62,7 @@ static int 	read_alias(char **args)
 	return (0);
 }
 
-static int		check_duplicat(char **args)
+static int	check_duplicat(char **args)
 {
 	char	**tab_str;
 	char	*line;
@@ -59,11 +71,11 @@ static int		check_duplicat(char **args)
 
 	offset = 0;
 	if ((fd = open(PATH, O_RDONLY)) == -1)
-		return (0);	
+		return (0);
 	line = NULL;
 	tab_str = ft_strsplit(args[1], '=');
 	while (get_next_line(fd, &line) > 0 && ++offset)
-	{	
+	{
 		if (!ft_strncmp(line, tab_str[0], ft_strlen(tab_str[0])))
 		{
 			ft_strdel(&line);
@@ -108,7 +120,7 @@ static void	rewrite_alias(char *str, int offset)
 	rename("./alias.copy", PATH);
 }
 
-void	builtin_alias(t_minishell *msh, int ind)
+void		builtin_alias(t_minishell *msh, int ind)
 {
 	char	**args;
 	int		offset;

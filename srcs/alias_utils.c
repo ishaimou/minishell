@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   alias_utils.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:45:44 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 01:51:17 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static char	**alloc_alias(t_minishell *msh, char **line, int i)
@@ -13,7 +25,7 @@ static char	**alloc_alias(t_minishell *msh, char **line, int i)
 	return (tab_str);
 }
 
-char	**split_alias(t_minishell *msh)
+char		**split_alias(t_minishell *msh)
 {
 	char	*line;
 	int		i;
@@ -37,7 +49,7 @@ char	**split_alias(t_minishell *msh)
 	return (alloc_alias(msh, &line, i));
 }
 
-static int		get_alias(t_minishell *msh, char **line, int fd)
+static int	get_alias(t_minishell *msh, char **line, int fd)
 {
 	char	*cmd;
 	char	**args;
@@ -64,7 +76,7 @@ static int		get_alias(t_minishell *msh, char **line, int fd)
 	return (0);
 }
 
-int		fetch_alias(t_minishell *msh)
+int			fetch_alias(t_minishell *msh)
 {
 	int		fd;
 	char	*line;

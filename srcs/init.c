@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:47:20 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 03:59:50 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-static void	set_builtin_funct(t_minishell *msh)
+static void		set_builtin_funct(t_minishell *msh)
 {
 	if (!(msh->funct_tab = (builtin_func*)malloc(sizeof(builtin_func)
 		* (BUILTIN_NUM + 1))))
@@ -17,7 +29,7 @@ static void	set_builtin_funct(t_minishell *msh)
 	msh->funct_tab[8] = &builtin_help;
 }
 
-static void	set_builtin(t_minishell *msh)
+static void		set_builtin(t_minishell *msh)
 {
 	if (!(msh->builtin_name = (char**)malloc(sizeof(char*)
 		* (BUILTIN_NUM + 1))))
@@ -35,13 +47,13 @@ static void	set_builtin(t_minishell *msh)
 	set_builtin_funct(msh);
 }
 
-static void	set_oldpwd(t_minishell *msh)
+static void		set_oldpwd(t_minishell *msh)
 {
 	t_diclst	*node;
 	char		*buf;
 
 	buf = NULL;
-	msh->pwd = getcwd(buf, CWD_BUF_SIZE);;
+	msh->pwd = getcwd(buf, CWD_BUF_SIZE);
 	node = get_diclst_val(msh, "PWD", 0);
 	if (node)
 	{
@@ -61,7 +73,7 @@ static void	set_oldpwd(t_minishell *msh)
 	free(msh->pwd);
 }
 
-void	init_qparam(t_minishell *msh)
+void			init_qparam(t_minishell *msh)
 {
 	msh->quoted = 0;
 	msh->quote = 0;
@@ -70,7 +82,7 @@ void	init_qparam(t_minishell *msh)
 	msh->dflag = 0;
 }
 
-void	init_msh(t_minishell *msh, int ac, char **av, char **env)
+void			init_msh(t_minishell *msh, int ac, char **av, char **env)
 {
 	(void)ac;
 	(void)av;
@@ -86,7 +98,7 @@ void	init_msh(t_minishell *msh, int ac, char **av, char **env)
 	msh->oldpwd = NULL;
 	msh->env_lst = NULL;
 	msh->var_lst = NULL;
-	msh->env = NULL;	
+	msh->env = NULL;
 	init_qparam(msh);
 	set_builtin(msh);
 	set_envlst(msh, env);

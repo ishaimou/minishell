@@ -1,8 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   diclist.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:46 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:34:33 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static int		diclst_size(t_diclst *begin_list)
 {
-	int		i;
+	int			i;
 
 	i = 0;
 	while (begin_list)
@@ -13,7 +25,7 @@ static int		diclst_size(t_diclst *begin_list)
 	return (i);
 }
 
-t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type)
+t_diclst		*get_diclst_val(t_minishell *msh, char *name, int type)
 {
 	t_diclst	*tmp;
 
@@ -30,7 +42,8 @@ t_diclst	*get_diclst_val(t_minishell *msh, char *name, int type)
 	return (NULL);
 }
 
-void	add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value)
+void			add_diclst(t_minishell *msh, t_diclst **dic_lst,
+		char *name, char *value)
 {
 	t_diclst	*node;
 	t_diclst	*tmp;
@@ -54,9 +67,9 @@ void	add_diclst(t_minishell *msh, t_diclst **dic_lst, char *name, char *value)
 	}
 }
 
-void	set_envlst(t_minishell *msh, char **env)
+void			set_envlst(t_minishell *msh, char **env)
 {
-	char	**tab_env;
+	char		**tab_env;
 
 	tab_env = NULL;
 	while (*env)
@@ -69,16 +82,17 @@ void	set_envlst(t_minishell *msh, char **env)
 	}
 }
 
-char	**set_env(t_minishell *msh)
+char			**set_env(t_minishell *msh)
 {
 	t_diclst	*env_lst;
 	char		**environ;
 	char		*str;
 	int			i;
-	
+
 	i = 0;
 	env_lst = msh->env_lst;
-	if (!(environ = (char**)malloc(sizeof(char*) * (diclst_size(msh->env_lst) + 1))))
+	if (!(environ = (char**)malloc(sizeof(char*)
+					* (diclst_size(msh->env_lst) + 1))))
 		malloc_error(msh);
 	while (env_lst)
 	{

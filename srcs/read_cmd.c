@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   read_cmd.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:47:51 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:47:07 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static void	quotes(t_minishell *msh, char *line, int i)
@@ -26,13 +38,13 @@ static void	quotes(t_minishell *msh, char *line, int i)
 	}
 }
 
-static int		handle_quotes(t_minishell *msh, char *line)
+static int	handle_quotes(t_minishell *msh, char *line)
 {
 	int		i;
 
 	i = 0;
 	while (line[i])
-	{	
+	{
 		quotes(msh, line, i);
 		i++;
 	}
@@ -67,7 +79,7 @@ static void	read_line(t_minishell *msh, int *q)
 		msh->line = line;
 }
 
-void	read_cmd(t_minishell *msh)
+void		read_cmd(t_minishell *msh)
 {
 	int		q;
 
@@ -81,4 +93,3 @@ void	read_cmd(t_minishell *msh)
 		ft_putstr("dquote> ");
 	read_cmd(msh);
 }
-

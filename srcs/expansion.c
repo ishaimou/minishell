@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   expansion.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:57 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:37:18 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static int		check_arg(char *arg, int *i)
@@ -11,7 +23,7 @@ static int		check_arg(char *arg, int *i)
 	return (1);
 }
 
-int		set_varlst(t_minishell *msh, char *arg)
+int				set_varlst(t_minishell *msh, char *arg)
 {
 	t_diclst	*node;
 	char		**tab_var;
@@ -37,7 +49,7 @@ int		set_varlst(t_minishell *msh, char *arg)
 	return (1);
 }
 
-static void	get_value(t_minishell *msh, char **tab_dollar, char **str)
+static void		get_value(t_minishell *msh, char **tab_dollar, char **str)
 {
 	t_diclst	*node;
 	char		*tmp;
@@ -58,12 +70,12 @@ static void	get_value(t_minishell *msh, char **tab_dollar, char **str)
 	}
 }
 
-static void	get_recursive_val(t_minishell *msh, char **arg, char *ptr)
+static void		get_recursive_val(t_minishell *msh, char **arg, char *ptr)
 {
 	char		**tab_dollar;
 	char		*str;
 	int			i;
-	
+
 	if (*ptr != '$')
 		return ;
 	else if (*(ptr + 1) == '$')
@@ -81,7 +93,7 @@ static void	get_recursive_val(t_minishell *msh, char **arg, char *ptr)
 	}
 }
 
-void	handle_exp(t_minishell *msh)
+void			handle_exp(t_minishell *msh)
 {
 	t_diclst	*node;
 	char		*ptr;

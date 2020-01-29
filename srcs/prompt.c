@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   prompt.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:47:34 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:45:53 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-char	*home_to_tild(t_minishell *msh, char *str)
+char			*home_to_tild(t_minishell *msh, char *str)
 {
 	char		*tmp;
 	int			len;
@@ -25,11 +37,11 @@ char	*home_to_tild(t_minishell *msh, char *str)
 	return (new_str);
 }
 
-void	prompt_dir(t_minishell *msh)
+void			prompt_dir(t_minishell *msh)
 {
-	char *buf;
-	char *cwd;
-	char *cwd_tild;
+	char		*buf;
+	char		*cwd;
+	char		*cwd_tild;
 	t_diclst	*node;
 
 	buf = NULL;

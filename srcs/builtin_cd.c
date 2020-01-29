@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtin_cd.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:20 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 01:54:53 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-static int	check_path(t_minishell *msh, int ind)
+static int		check_path(t_minishell *msh, int ind)
 {
 	struct stat	file_info;
 
@@ -29,7 +41,8 @@ static int		builtin_cd_path(t_minishell *msh, int ind)
 	if (check_path(msh, ind))
 		return (1);
 	if (chdir(msh->args[ind + 1]))
-		ft_dprintf(2, "cd: no such file or directory: %s\n", msh->args[ind + 1]);
+		ft_dprintf(2, "cd: no such file or directory: %s\n",
+				msh->args[ind + 1]);
 	else
 	{
 		tmp = get_diclst_val(msh, "PWD", 0)->value;
@@ -44,8 +57,8 @@ static int		builtin_cd_path(t_minishell *msh, int ind)
 
 static void		builtin_cd_minus(t_minishell *msh)
 {
-	char	*buf;
-	char	*tmp;
+	char		*buf;
+	char		*tmp;
 
 	buf = NULL;
 	chdir(msh->oldpwd);
@@ -85,9 +98,9 @@ static void		builtin_cd_set(t_minishell *msh)
 	free(cwd);
 }
 
-void		builtin_cd(t_minishell *msh, int ind)
+void			builtin_cd(t_minishell *msh, int ind)
 {
-	char	*buf;
+	char		*buf;
 
 	buf = NULL;
 	msh->argc = get_argc(msh->args + ind);

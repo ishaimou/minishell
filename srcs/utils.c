@@ -1,14 +1,26 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:48:05 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:48:27 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-static void	simplify(char **str, char **cmd)
+static void		simplify(char **str, char **cmd)
 {
-	char	*line;
-	
+	char		*line;
+
 	line = *cmd;
 	while (*line)
 	{
 		while (*line && *line != '\'' && *line != '\"')
-				*str = ft_str_pushback(*str, *line++);
+			*str = ft_str_pushback(*str, *line++);
 		if (*line == '\'')
 		{
 			while (*line++ && *line != '\'')
@@ -24,10 +36,10 @@ static void	simplify(char **str, char **cmd)
 	}
 }
 
-void	simplify_cmd(char **cmd)
+void			simplify_cmd(char **cmd)
 {
-	char	*str;
-	
+	char		*str;
+
 	str = NULL;
 	simplify(&str, cmd);
 	if (str)
@@ -37,7 +49,7 @@ void	simplify_cmd(char **cmd)
 	}
 }
 
-void		realloc_args(t_minishell *msh)
+void			realloc_args(t_minishell *msh)
 {
 	t_diclst	*node;
 
@@ -54,9 +66,9 @@ void		realloc_args(t_minishell *msh)
 	msh->args[2] = NULL;
 }
 
-int		is_builtin(t_minishell *msh, char *cmd_name)
+int				is_builtin(t_minishell *msh, char *cmd_name)
 {
-	int		i;
+	int			i;
 
 	i = -1;
 	while (++i < BUILTIN_NUM)

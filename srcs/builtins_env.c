@@ -1,10 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtins_env.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/29 01:46:33 by ishaimou          #+#    #+#             */
+/*   Updated: 2020/01/29 02:33:03 by ishaimou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-void	builtin_env(t_minishell *msh, int ind)
+void			builtin_env(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	int			argc;
-	
+
 	argc = get_argc(msh->args + ind);
 	if (argc > 1)
 	{
@@ -19,7 +31,7 @@ void	builtin_env(t_minishell *msh, int ind)
 	}
 }
 
-void	builtin_setenv(t_minishell *msh, int ind)
+void			builtin_setenv(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	char		**args;
@@ -35,7 +47,7 @@ void	builtin_setenv(t_minishell *msh, int ind)
 	while (env_lst)
 	{
 		if (!ft_strcmp(args[1], env_lst->name))
-		{	
+		{
 			free(env_lst->value);
 			if (args[2])
 				env_lst->value = ft_strdup(args[2]);
@@ -45,14 +57,14 @@ void	builtin_setenv(t_minishell *msh, int ind)
 		}
 		env_lst = env_lst->next;
 	}
-	add_diclst(msh, &msh->env_lst, args[1], args[2]); 
+	add_diclst(msh, &msh->env_lst, args[1], args[2]);
 }
 
-static void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
+static void		ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
 {
 	if ((*msh)->env_lst == *node)
 	{
-		(*msh)->env_lst = (*node)->next;;
+		(*msh)->env_lst = (*node)->next;
 		ft_strdel(&(*node)->name);
 		ft_strdel(&(*node)->value);
 		free(*node);
@@ -68,7 +80,7 @@ static void	ft_unsetenv(t_minishell **msh, t_diclst **node, t_diclst **prev)
 	}
 }
 
-void	builtin_unsetenv(t_minishell *msh, int ind)
+void			builtin_unsetenv(t_minishell *msh, int ind)
 {
 	t_diclst	*env_lst;
 	t_diclst	*prev;
