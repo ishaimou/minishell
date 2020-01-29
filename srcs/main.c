@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:24 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 04:57:00 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 07:20:14 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	sigint_handler(int signo)
 	(void)signo;
 	if (!g_jmp_flag)
 		return ;
-	siglongjmp(g_sig_env, 1337);
+	siglongjmp(g_sig_env, SIG_JMP);
 }
 
 int		main(int ac, char *av[], char *env[])
@@ -26,15 +26,15 @@ int		main(int ac, char *av[], char *env[])
 
 	init_msh(&msh, ac, av, env);
 	signal(SIGINT, sigint_handler);
-	while (1337)
+	while (TRUE)
 	{
-		if (sigsetjmp(g_sig_env, 1) == 1337)
+		if (sigsetjmp(g_sig_env, 1) == SIG_JMP)
 		{
 			init_qparam(&msh);
 			ft_putchar('\n');
 		}
-		g_jmp_flag = 1;
-		msh.sflag = 0;
+		g_jmp_flag = TRUE;
+		msh.sflag = FALSE;
 		prompt_dir(&msh);
 		read_cmd(&msh);
 		parse_exec_cmd(&msh);

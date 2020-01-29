@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:51 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:47:07 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 06:13:52 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,11 +62,8 @@ static void	read_line(t_minishell *msh, int *q)
 	char	*tmp;
 
 	line = NULL;
-	if (get_next_line(0, &line) < 0)
-	{
-		ft_dprintf(2, "Error: gnl cannot read from fd\n");
-		exit(EXIT_FAILURE);
-	}
+	if (get_next_line(STDIN, &line) < 0)
+		gnl_error();
 	*q = handle_quotes(msh, line);
 	if (msh->quoted)
 	{

@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:34 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:45:53 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 05:53:47 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ char			*home_to_tild(t_minishell *msh, char *str)
 	t_diclst	*node;
 
 	new_str = ft_strdup(str);
-	node = get_diclst_val(msh, "HOME", 0);
+	node = get_diclst_val(msh, "HOME", ENV_LST);
 	if (node)
 		msh->home = node->value;
 	else
@@ -45,7 +45,7 @@ void			prompt_dir(t_minishell *msh)
 	t_diclst	*node;
 
 	buf = NULL;
-	node = get_diclst_val(msh, "USER", 0);
+	node = get_diclst_val(msh, "USER", ENV_LST);
 	if (node)
 		msh->user = node->value;
 	else

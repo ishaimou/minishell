@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 04:44:54 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 04:57:08 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 06:03:19 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,12 +24,18 @@
 # include <fcntl.h>
 # include "libft.h"
 
+# define TRUE 1
+# define FALSE 0
+# define ENV_LST 0
+# define VAR_LST 1
 # define NO_FILE_DIR 1
 # define NO_PERM 2
 # define NO_FOUND 3
 # define BUILTIN_NUM 9
 # define CWD_BUF_SIZE 2048
+# define SIG_JMP 1337
 # define PATH "./alias.config"
+# define STDIN 0
 
 static sigjmp_buf				g_sig_env;
 static volatile sig_atomic_t	g_jmp_flag = 0;
@@ -98,6 +104,7 @@ void				free_funct_tab(t_builtin_func **funct_tab);
 void				free_diclst(t_diclst **begin);
 void				malloc_error(t_minishell *msh);
 void				fork_error(t_minishell *msh);
+void				gnl_error(void);
 int					check_err(t_minishell *msh, int mode);
 void				parse_exec_cmd(t_minishell *msh);
 void				launch_cmd(t_minishell *msh, int ind);

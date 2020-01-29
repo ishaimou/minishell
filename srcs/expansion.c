@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:57 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:37:18 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/01/29 06:43:44 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void			handle_exp(t_minishell *msh)
 	int			i;
 
 	i = 0;
-	node = get_diclst_val(msh, "HOME", 0);
+	node = get_diclst_val(msh, "HOME", ENV_LST);
 	if (node)
 		msh->home = node->value;
 	while (msh->args[i])
