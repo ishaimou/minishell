@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:34 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 03:38:13 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:33:07 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ char			*home_to_tild(t_minishell *msh, char *str)
 	int			len;
 	char		*new_str;
 	t_diclst	*node;
-	
+
 	new_str = ft_strdup(str);
 	node = get_diclst_val(msh, "HOME", ENV_LST);
 	msh->home = node ? node->value : "";

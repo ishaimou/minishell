@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 04:44:54 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 07:18:23 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 11:18:16 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@
 # include <fcntl.h>
 # include "libft.h"
 
+# define COPY 0
+# define AFFECT 1
 # define TRUE 1
 # define FALSE 0
 # define ENV_LST 0
@@ -34,7 +36,6 @@
 # define BUILTIN_NUM 9
 # define CWD_BUF_SIZE 2048
 # define SIG_JMP 1337
-# define PATH "./alias.config"
 # define STDIN 0
 
 static sigjmp_buf				g_sig_env;
@@ -70,6 +71,8 @@ struct				s_minishell
 	char			*oldpwd;
 	char			*pwd;
 	char			**builtin_name;
+	char			*alias_path;
+	char			*alias_path_cp;
 	t_diclst		*env_lst;
 	t_diclst		*var_lst;
 	t_builtin_func	*funct_tab;
@@ -113,6 +116,10 @@ void				realloc_args(t_minishell *msh);
 void				split_n_join(t_minishell *msh);
 char				**split_alias(t_minishell *msh);
 int					fetch_alias(t_minishell *msh);
+void				set_alias_path(t_minishell *msh);
 void				print_chars(char *str);
+int					check_arg(char *arg, int *i);
+void				ft_strjoin_n_free(char **str1, char *str2, char *sep);
+int					is_sep(char c);
 
 #endif

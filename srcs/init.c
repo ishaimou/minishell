@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:20 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 04:04:22 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:35:08 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,8 @@ void			init_msh(t_minishell *msh, int ac, char **av, char **env)
 	msh->home = NULL;
 	msh->pwd = NULL;
 	msh->oldpwd = NULL;
+	msh->alias_path = NULL;
+	msh->alias_path_cp = NULL;
 	msh->env_lst = NULL;
 	msh->var_lst = NULL;
 	msh->env = NULL;
@@ -103,4 +105,5 @@ void			init_msh(t_minishell *msh, int ac, char **av, char **env)
 	set_builtin(msh);
 	set_envlst(msh, env);
 	set_oldpwd(msh);
+	set_alias_path(msh);
 }

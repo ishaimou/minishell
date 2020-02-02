@@ -6,11 +6,28 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:56 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 01:47:57 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 11:14:37 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int		is_sep(char c)
+{
+	return (c == ':' || c == '/' || c == '#' || c == '-'
+			|| c == '{' || c == '}' || c == '+');
+}
+
+int		check_arg(char *arg, int *i)
+{
+	if (arg[0] == '=')
+		return (0);
+	while (arg[*i] && arg[*i] != '=' && ft_isprint(arg[*i]))
+		(*i)++;
+	if (arg[*i] != '=')
+		return (0);
+	return (1);
+}
 
 void	print_chars(char *str)
 {
@@ -47,24 +64,4 @@ void	rm_trailing_slash(char **path)
 		free(*path);
 		*path = str;
 	}
-}
-
-void	split_n_join(t_minishell *msh)
-{
-	char	*str;
-	char	*tmp;
-	int		i;
-
-	i = 0;
-	str = ft_strnew(0);
-	while (msh->args[i])
-	{
-		tmp = str;
-		str = ft_strjoin_sep(str, msh->args[i], " ");
-		free(tmp);
-		i++;
-	}
-	free_dbl(&msh->args);
-	msh->args = ft_split_whitespaces(str);
-	ft_strdel(&str);
 }

@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:15 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:38:38 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 11:16:42 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ void			free_msh(t_minishell *msh)
 {
 	ft_strdel(&msh->line);
 	ft_strdel(&msh->cmd_path);
+	ft_strdel(&msh->alias_path);
+	ft_strdel(&msh->alias_path_cp);
 	free_dbl(&msh->args);
 	free_dbl(&msh->cmds);
 	free_dbl(&msh->env);

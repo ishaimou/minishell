@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:29 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 07:18:18 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 09:28:46 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ static void			exec_cmd(t_minishell *msh)
 	int				ind;
 
 	ind = 0;
-	if (fetch_alias(msh))
+	while (fetch_alias(msh))
 		split_n_join(msh);
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=')
 			&& set_varlst(msh, msh->args[ind]))

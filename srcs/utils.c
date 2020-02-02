@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:48:05 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 03:28:09 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:34:21 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,16 @@ static void		simplify(char **str, char **cmd)
 		if (*line)
 			line++;
 	}
+}
+
+void			set_alias_path(t_minishell *msh)
+{
+	t_diclst	*node;
+
+	node = get_diclst_val(msh, "HOME", ENV_LST);
+	msh->home = node ? node->value : ".";
+	msh->alias_path = ft_strjoin(msh->home, "/.alias.config");
+	msh->alias_path_cp = ft_strjoin(msh->home, "/.alias.copy");
 }
 
 void			simplify_cmd(char **cmd)

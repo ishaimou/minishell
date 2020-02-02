@@ -6,28 +6,11 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:57 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 07:18:16 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 11:13:59 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-static int		is_sep(char c)
-{
-	return (c == ':' || c == '/' || c == '#' || c == '-'
-			|| c == '{' || c == '}' || c == '+');
-}
-
-static int		check_arg(char *arg, int *i)
-{
-	if (arg[0] == '=')
-		return (0);
-	while (arg[*i] && arg[*i] != '=' && ft_isprint(arg[*i]))
-		(*i)++;
-	if (arg[*i] != '=')
-		return (0);
-	return (1);
-}
 
 int				set_varlst(t_minishell *msh, char *arg)
 {
@@ -55,10 +38,20 @@ int				set_varlst(t_minishell *msh, char *arg)
 	return (1);
 }
 
+static void		set_var_key(char **tab_dollar, int i, int *j, char **var_key)
+{
+	*j = 0;
+	while (tab_dollar[i][*j] && !is_sep(tab_dollar[i][*j]))
+		(*j)++;
+	if (tab_dollar[i][*j])
+		*var_key = ft_strndup(tab_dollar[i], *j);
+	else
+		*var_key = ft_strdup(tab_dollar[i]);
+}
+
 static void		get_value(t_minishell *msh, char **tab_dollar, char **str)
 {
 	t_diclst	*node;
-	char		*tmp;
 	int			len;
 	int			i;
 	int			j;
@@ -68,26 +61,12 @@ static void		get_value(t_minishell *msh, char **tab_dollar, char **str)
 	i = -1;
 	while (++i < len)
 	{
-		j = 0;
-		while (tab_dollar[i][j] && !is_sep(tab_dollar[i][j]))
-			j++;
-		if (tab_dollar[i][j])
-			var_key = ft_strndup(tab_dollar[i], j);
-		else
-			var_key = ft_strdup(tab_dollar[i]);
+		set_var_key(tab_dollar, i, &j, &var_key);
 		if ((node = get_diclst_val(msh, var_key, VAR_LST)) ||
 				(node = get_diclst_val(msh, var_key, ENV_LST)))
-		{
-			tmp = *str;
-			*str = ft_strjoin_sep(*str, tab_dollar[i] + j, node->value);
-			free(tmp);
-		}
+			ft_strjoin_n_free(str, tab_dollar[i] + j, node->value);
 		else
-		{
-			tmp = *str;
-			*str = ft_strjoin(*str, tab_dollar[i] + j);
-			free(tmp);
-		}
+			ft_strjoin_n_free(str, tab_dollar[i] + j, NULL);
 		ft_strdel(&var_key);
 	}
 }

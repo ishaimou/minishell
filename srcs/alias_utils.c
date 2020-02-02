@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:45:44 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 07:20:32 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:28:17 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ int			fetch_alias(t_minishell *msh)
 	int		fd;
 	char	*line;
 
-	if ((fd = open("./alias.config", O_RDONLY)) == -1)
+	if ((fd = open(msh->alias_path, O_RDONLY)) == -1)
 		return (0);
 	line = NULL;
 	while (get_next_line(fd, &line) > 0)

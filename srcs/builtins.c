@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:24 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:29:04 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:24:38 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@ void			builtin_help(t_minishell *msh, int ind)
 {
 	(void)ind;
 	(void)msh;
-	ft_printf("%{BLUE}==============================================");
+	ft_printf("%{BLUE}===============================================");
 	ft_printf("==== *** %{CYAN}MINISHELL%{eoc}");
-	ft_printf("%{BLUE}*** ==========================================");
+	ft_printf("%{BLUE}*** ===========================================");
 	ft_printf("========%{eoc}\n\n\n");
 	ft_printf("SYNOPSIS\n\t./minishell\n\n");
 	ft_printf("DESCRIPTION\n\tMinishell is a minimalist interactive");
@@ -27,6 +27,7 @@ void			builtin_help(t_minishell *msh, int ind)
 	ft_printf(" input.\n\n");
 	ft_printf("MANDATORY BUILTINS\n\tcd - echo - exit - env - setenv - ");
 	ft_printf("unsetenv\n\n");
+	ft_printf("\techo options:\n\t\t-n: do not output the trailing newline\n");
 	ft_printf("BONUS BUILTINS\n\tsource - alias - help\n\n");
 	ft_printf("LISTS\n\tA sequence of one or more commands separated by");
 	ft_printf(" one semicolon.\n");
@@ -59,12 +60,20 @@ void			builtin_echo(t_minishell *msh, int ind)
 {
 	char		**args;
 	int			argc;
+	int			nflag;
 	int			i;
 
 	i = 1;
+	nflag = 0;
 	args = msh->args + ind;
 	argc = get_argc(args);
 	args++;
+	if (*args && !ft_strcmp(*args, "-n"))
+	{
+		nflag = 1;
+		args++;
+		i++;
+	}
 	while (*args)
 	{
 		i++;
@@ -73,7 +82,7 @@ void			builtin_echo(t_minishell *msh, int ind)
 			ft_putchar(' ');
 		args++;
 	}
-	ft_putchar('\n');
+	!nflag ? ft_putchar('\n') : 0;
 }
 
 static void		copy_n_affect(t_minishell *msh, char **line, int action)
@@ -82,7 +91,7 @@ static void		copy_n_affect(t_minishell *msh, char **line, int action)
 	static char	**cpy_args;
 	static char	**cpy_cmds;
 
-	if (!action)
+	if (action == COPY)
 	{
 		cpy_line = ft_strdup(msh->line);
 		cpy_args = ft_strddup(msh->args);
@@ -91,7 +100,7 @@ static void		copy_n_affect(t_minishell *msh, char **line, int action)
 		free_dbl(&msh->args);
 		free_dbl(&msh->cmds);
 	}
-	else
+	else if (action == AFFECT)
 	{
 		ft_strdel(line);
 		msh->line = cpy_line;
@@ -115,7 +124,7 @@ void			builtin_source(t_minishell *msh, int ind)
 	}
 	if ((fd = open(args[1], O_RDONLY)) == -1)
 		return ;
-	copy_n_affect(msh, &line, 0);
+	copy_n_affect(msh, &line, COPY);
 	msh->sflag = 1;
 	while (get_next_line(fd, &line) > 0)
 	{
@@ -125,6 +134,6 @@ void			builtin_source(t_minishell *msh, int ind)
 		free_dbl(&msh->args);
 		free_dbl(&msh->cmds);
 	}
-	copy_n_affect(msh, &line, 1);
+	copy_n_affect(msh, &line, AFFECT);
 	close(fd);
 }

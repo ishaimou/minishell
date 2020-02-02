@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:16 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 01:53:27 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 09:04:33 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,14 +40,14 @@ static int	check_assignement(char **args, char *str)
 	return (0);
 }
 
-static int	read_alias(char **args)
+static int	read_alias(t_minishell *msh, char **args)
 {
 	char	*line;
 	int		fd;
 
 	if (!args[1])
 	{
-		if ((fd = open(PATH, O_RDONLY)) == -1)
+		if ((fd = open(msh->alias_path, O_RDONLY)) == -1)
 			return (1);
 		line = NULL;
 		while (get_next_line(fd, &line) > 0)
@@ -62,7 +62,7 @@ static int	read_alias(char **args)
 	return (0);
 }
 
-static int	check_duplicat(char **args)
+static int	check_duplicat(t_minishell *msh, char **args)
 {
 	char	**tab_str;
 	char	*line;
@@ -70,7 +70,7 @@ static int	check_duplicat(char **args)
 	int		offset;
 
 	offset = 0;
-	if ((fd = open(PATH, O_RDONLY)) == -1)
+	if ((fd = open(msh->alias_path, O_RDONLY)) == -1)
 		return (0);
 	line = NULL;
 	tab_str = ft_strsplit(args[1], '=');
@@ -91,15 +91,15 @@ static int	check_duplicat(char **args)
 	return (0);
 }
 
-static void	rewrite_alias(char *str, int offset)
+static void	rewrite_alias(t_minishell *msh, char *str, int offset)
 {
 	int		num_line;
 	FILE	*f;
 	FILE	*fc;
 	char	buff[BUFF_SIZE];
 
-	f = fopen(PATH, "r");
-	fc = fopen("./alias.copy", "w");
+	f = fopen(msh->alias_path, "r");
+	fc = fopen(msh->alias_path_cp, "w");
 	if (!f || !fc)
 		return ;
 	num_line = 0;
@@ -116,8 +116,8 @@ static void	rewrite_alias(char *str, int offset)
 	}
 	fclose(f);
 	fclose(fc);
-	remove(PATH);
-	rename("./alias.copy", PATH);
+	remove(msh->alias_path);
+	rename(msh->alias_path_cp, msh->alias_path);
 }
 
 void		builtin_alias(t_minishell *msh, int ind)
@@ -127,18 +127,18 @@ void		builtin_alias(t_minishell *msh, int ind)
 	int		fd;
 
 	args = msh->args + ind;
-	if (read_alias(args))
+	if (read_alias(msh, args))
 		return ;
 	if (check_assignement(&msh->args[ind], args[1]))
 		return ;
-	if (!(offset = check_duplicat(args)))
+	if (!(offset = check_duplicat(msh, args)))
 	{
-		fd = open(PATH, O_RDWR | O_APPEND | O_CREAT, 0644);
+		fd = open(msh->alias_path, O_RDWR | O_APPEND | O_CREAT, 0644);
 		if (fd == -1)
 			return ;
 		ft_putendl_fd(args[1], fd);
 		close(fd);
 	}
 	else
-		rewrite_alias(args[1], offset);
+		rewrite_alias(msh, args[1], offset);
 }

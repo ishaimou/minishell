@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:20 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 04:23:59 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 10:31:48 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,8 @@ void			builtin_cd(t_minishell *msh, int ind)
 	if (!ft_strcmp(msh->args[ind + 1], "-"))
 		builtin_cd_minus(msh);
 	else
+	{
 		if (builtin_cd_path(msh, ind))
 			return ;
+	}
 }

@@ -6,7 +6,7 @@
 #    By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/01/29 02:50:05 by ishaimou          #+#    #+#              #
-#    Updated: 2020/01/29 02:50:10 by ishaimou         ###   ########.fr        #
+#    Updated: 2020/02/02 11:16:41 by ishaimou         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@ FLAGS = -Wall -Werror -Wextra
 
 CC = gcc
 
-SRCS = 	main.c init.c tools.c utils.c free.c error.c diclist.c\
+SRCS = 	main.c init.c tools.c tools2.c utils.c free.c error.c diclist.c\
 		builtins.c builtin_cd.c builtin_alias.c builtins_env.c\
 		read_cmd.c parse_exec.c launch.c prompt.c expansion.c alias_utils.c
 
