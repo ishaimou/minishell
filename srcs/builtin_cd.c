@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:20 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 01:54:53 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 04:23:59 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,12 +45,12 @@ static int		builtin_cd_path(t_minishell *msh, int ind)
 				msh->args[ind + 1]);
 	else
 	{
-		tmp = get_diclst_val(msh, "PWD", 0)->value;
-		free(get_diclst_val(msh, "OLDPWD", 0)->value);
-		get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(tmp);
+		tmp = get_diclst_val(msh, "PWD", ENV_LST)->value;
+		free(get_diclst_val(msh, "OLDPWD", ENV_LST)->value);
+		get_diclst_val(msh, "OLDPWD", ENV_LST)->value = ft_strdup(tmp);
 		free(tmp);
 		buf = NULL;
-		get_diclst_val(msh, "PWD", 0)->value = getcwd(buf, CWD_BUF_SIZE);
+		get_diclst_val(msh, "PWD", ENV_LST)->value = getcwd(buf, CWD_BUF_SIZE);
 	}
 	return (0);
 }
@@ -61,14 +61,19 @@ static void		builtin_cd_minus(t_minishell *msh)
 	char		*tmp;
 
 	buf = NULL;
-	chdir(msh->oldpwd);
+	if (chdir(msh->oldpwd))
+	{
+		ft_dprintf(2, "cd: no such file or directory: %s\n",
+				msh->oldpwd);
+		return ;
+	}
 	tmp = home_to_tild(msh, msh->oldpwd);
 	ft_printf("%s\n", tmp);
 	free(tmp);
-	free(get_diclst_val(msh, "OLDPWD", 0)->value);
-	get_diclst_val(msh, "OLDPWD", 0)->value = ft_strdup(msh->pwd);
-	free(get_diclst_val(msh, "PWD", 0)->value);
-	get_diclst_val(msh, "PWD", 0)->value = getcwd(buf, CWD_BUF_SIZE);
+	free(get_diclst_val(msh, "OLDPWD", ENV_LST)->value);
+	get_diclst_val(msh, "OLDPWD", ENV_LST)->value = ft_strdup(msh->pwd);
+	free(get_diclst_val(msh, "PWD", ENV_LST)->value);
+	get_diclst_val(msh, "PWD", ENV_LST)->value = getcwd(buf, CWD_BUF_SIZE);
 }
 
 static void		builtin_cd_set(t_minishell *msh)
@@ -79,23 +84,23 @@ static void		builtin_cd_set(t_minishell *msh)
 
 	buf = NULL;
 	cwd = getcwd(buf, CWD_BUF_SIZE);
-	node = get_diclst_val(msh, "OLDPWD", 0);
+	node = get_diclst_val(msh, "OLDPWD", ENV_LST);
 	if (node)
 		msh->oldpwd = node->value;
 	else
 	{
 		add_diclst(msh, &msh->env_lst, "OLDPWD", cwd);
-		msh->oldpwd = get_diclst_val(msh, "OLDPWD", 0)->value;
+		msh->oldpwd = get_diclst_val(msh, "OLDPWD", ENV_LST)->value;
 	}
-	node = get_diclst_val(msh, "PWD", 0);
+	node = get_diclst_val(msh, "PWD", ENV_LST);
 	if (node)
 		msh->pwd = node->value;
 	else
 	{
 		add_diclst(msh, &msh->env_lst, "PWD", cwd);
-		msh->pwd = get_diclst_val(msh, "PWD", 0)->value;
+		msh->pwd = get_diclst_val(msh, "PWD", ENV_LST)->value;
 	}
-	free(cwd);
+	ft_strdel(&cwd);
 }
 
 void			builtin_cd(t_minishell *msh, int ind)
@@ -120,8 +125,6 @@ void			builtin_cd(t_minishell *msh, int ind)
 	if (!ft_strcmp(msh->args[ind + 1], "-"))
 		builtin_cd_minus(msh);
 	else
-	{
 		if (builtin_cd_path(msh, ind))
 			return ;
-	}
 }

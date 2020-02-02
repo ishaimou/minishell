@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:48:05 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:48:27 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 03:28:09 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,8 @@ void			realloc_args(t_minishell *msh)
 	if (!(msh->args = (char**)malloc(sizeof(char*) * 3)))
 		malloc_error(msh);
 	msh->args[0] = ft_strdup("cd");
-	node = get_diclst_val(msh, "HOME", 0);
-	if (node)
-		msh->home = node->value;
-	else
-		msh->home = "";
+	node = get_diclst_val(msh, "HOME", ENV_LST);
+	msh->home = node ? node->value : "";
 	msh->args[1] = ft_strdup(msh->home);
 	msh->args[2] = NULL;
 }

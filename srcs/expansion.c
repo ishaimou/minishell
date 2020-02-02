@@ -6,11 +6,17 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:57 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 06:43:44 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 07:18:16 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+static int		is_sep(char c)
+{
+	return (c == ':' || c == '/' || c == '#' || c == '-'
+			|| c == '{' || c == '}' || c == '+');
+}
 
 static int		check_arg(char *arg, int *i)
 {
@@ -37,7 +43,7 @@ int				set_varlst(t_minishell *msh, char *arg)
 	tab_var[0] = ft_strndup(arg, i);
 	tab_var[1] = ft_strdup(arg + i + 1);
 	tab_var[2] = NULL;
-	node = get_diclst_val(msh, tab_var[0], 1);
+	node = get_diclst_val(msh, tab_var[0], VAR_LST);
 	if (node)
 	{
 		free(node->value);
@@ -55,18 +61,34 @@ static void		get_value(t_minishell *msh, char **tab_dollar, char **str)
 	char		*tmp;
 	int			len;
 	int			i;
+	int			j;
+	char		*var_key;
 
 	len = get_argc(tab_dollar);
 	i = -1;
 	while (++i < len)
 	{
-		if ((node = get_diclst_val(msh, tab_dollar[i], 1)) ||
-				(node = get_diclst_val(msh, tab_dollar[i], 0)))
+		j = 0;
+		while (tab_dollar[i][j] && !is_sep(tab_dollar[i][j]))
+			j++;
+		if (tab_dollar[i][j])
+			var_key = ft_strndup(tab_dollar[i], j);
+		else
+			var_key = ft_strdup(tab_dollar[i]);
+		if ((node = get_diclst_val(msh, var_key, VAR_LST)) ||
+				(node = get_diclst_val(msh, var_key, ENV_LST)))
 		{
 			tmp = *str;
-			*str = ft_strjoin(*str, node->value);
+			*str = ft_strjoin_sep(*str, tab_dollar[i] + j, node->value);
 			free(tmp);
 		}
+		else
+		{
+			tmp = *str;
+			*str = ft_strjoin(*str, tab_dollar[i] + j);
+			free(tmp);
+		}
+		ft_strdel(&var_key);
 	}
 }
 

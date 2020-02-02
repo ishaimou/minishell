@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:46 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 05:35:21 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 04:08:50 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,7 @@ void			add_diclst(t_minishell *msh, t_diclst **dic_lst,
 		malloc_error(msh);
 	node->next = NULL;
 	node->name = ft_strdup(name);
-	if (value)
-		node->value = ft_strdup(value);
-	else
-		node->value = ft_strnew(0);
+	node->value = value ? ft_strdup(value) : ft_strnew(0);
 	if (!*dic_lst)
 		*dic_lst = node;
 	else

@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:20 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 06:12:06 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 04:04:22 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ static void		set_oldpwd(t_minishell *msh)
 	if (node)
 	{
 		free(node->value);
-		node->value = ft_strdup(msh->pwd);
+		node->value = msh->pwd ? ft_strdup(msh->pwd) : ft_strnew(0);
 	}
 	else
 		add_diclst(msh, &msh->env_lst, "PWD", msh->pwd);
@@ -66,7 +66,7 @@ static void		set_oldpwd(t_minishell *msh)
 	if (node)
 	{
 		free(node->value);
-		node->value = ft_strdup(msh->pwd);
+		node->value = msh->pwd ? ft_strdup(msh->pwd) : ft_strnew(0);
 	}
 	else
 		add_diclst(msh, &msh->env_lst, "OLDPWD", msh->pwd);

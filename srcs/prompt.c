@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:34 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 05:53:47 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/02 03:38:13 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,10 @@ char			*home_to_tild(t_minishell *msh, char *str)
 	int			len;
 	char		*new_str;
 	t_diclst	*node;
-
+	
 	new_str = ft_strdup(str);
 	node = get_diclst_val(msh, "HOME", ENV_LST);
-	if (node)
-		msh->home = node->value;
-	else
-		msh->home = "";
+	msh->home = node ? node->value : "";
 	if (msh->home[0] && ft_strstr(str, msh->home))
 	{
 		len = ft_strlen(msh->home);
@@ -46,12 +43,12 @@ void			prompt_dir(t_minishell *msh)
 
 	buf = NULL;
 	node = get_diclst_val(msh, "USER", ENV_LST);
-	if (node)
-		msh->user = node->value;
-	else
-		msh->user = "";
-	cwd = getcwd(buf, CWD_BUF_SIZE);
-	cwd_tild = home_to_tild(msh, cwd);
+	msh->user = node ? node->value : "";
+	node = get_diclst_val(msh, "PWD", ENV_LST);
+	msh->pwd = node ? node->value : "";
+	if ((cwd = getcwd(buf, CWD_BUF_SIZE)))
+		msh->pwd = cwd;
+	cwd_tild = home_to_tild(msh, msh->pwd);
 	if (msh->user)
 	{
 		ft_putstr("\033[1;32m");
