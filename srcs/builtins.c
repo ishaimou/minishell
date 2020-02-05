@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:24 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 10:24:38 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/03 06:44:03 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,9 +103,12 @@ static void		copy_n_affect(t_minishell *msh, char **line, int action)
 	else if (action == AFFECT)
 	{
 		ft_strdel(line);
-		msh->line = cpy_line;
-		msh->args = cpy_args;
-		msh->cmds = cpy_cmds;
+		msh->line = ft_strdup(cpy_line);
+		msh->args = ft_strddup(cpy_args);
+		msh->cmds = ft_strddup(cpy_cmds);
+		ft_strdel(&cpy_line);
+		free_dbl(&cpy_args);
+		free_dbl(&cpy_cmds);
 	}
 }
 

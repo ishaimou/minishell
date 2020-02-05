@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_exec.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:47:29 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 09:28:46 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/03 07:02:48 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ static void			exec_cmd(t_minishell *msh)
 	int				ind;
 
 	ind = 0;
-	while (fetch_alias(msh))
+	if (fetch_alias(msh))
 		split_n_join(msh);
 	while (msh->args[ind] && ft_strchr(msh->args[ind], '=')
 			&& set_varlst(msh, msh->args[ind]))

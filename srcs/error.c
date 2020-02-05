@@ -6,7 +6,7 @@
 /*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:52 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 05:12:27 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/03 03:37:51 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ int				check_err(t_minishell *msh, int mode)
 	struct stat	file_stat;
 
 	if (mode == NO_FOUND)
-		if (stat(msh->cmd_path, &file_stat))
+		if (stat(msh->cmd_path, &file_stat) || !ft_strchr(msh->cmd_path, '/'))
 			return (ft_error(msh, NO_FOUND));
 	if (access(msh->cmd_path, F_OK))
 		return (ft_error(msh, NO_FILE_DIR));

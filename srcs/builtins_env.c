@@ -3,14 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   builtins_env.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:46:33 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/01/29 02:33:03 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/03 06:58:01 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+static int		env_error(char **args)
+{
+	if (args[0] && args[1] && args[1][0] == '\0')
+	{
+		ft_dprintf(2, "%s: error: name must not be empty string\n", args[0]);
+		return (1);
+	}
+	return (0);
+}
 
 void			builtin_env(t_minishell *msh, int ind)
 {
@@ -43,16 +53,15 @@ void			builtin_setenv(t_minishell *msh, int ind)
 		ft_printf("setenv: usage: setenv [NAME] [OPTIONAL VALUE]\n");
 		return ;
 	}
+	if (env_error(args))
+		return ;
 	env_lst = msh->env_lst;
 	while (env_lst)
 	{
 		if (!ft_strcmp(args[1], env_lst->name))
 		{
 			free(env_lst->value);
-			if (args[2])
-				env_lst->value = ft_strdup(args[2]);
-			else
-				env_lst->value = ft_strnew(0);
+			env_lst->value = args[2] ? ft_strdup(args[2]) : ft_strnew(0);
 			return ;
 		}
 		env_lst = env_lst->next;
@@ -93,11 +102,13 @@ void			builtin_unsetenv(t_minishell *msh, int ind)
 		ft_printf("unsetenv: usage: unsetenv [NAME]\n");
 		return ;
 	}
+	if (env_error(args))
+		return ;
 	env_lst = msh->env_lst;
 	prev = env_lst;
 	while (env_lst)
 	{
-		if (!strcmp(args[1], env_lst->name))
+		if (!ft_strcmp(args[1], env_lst->name))
 		{
 			ft_unsetenv(&msh, &env_lst, &prev);
 			break ;

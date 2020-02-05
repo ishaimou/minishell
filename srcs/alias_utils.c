@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   alias_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ishaimou <ishaimou@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ishaimou <ishaimou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/29 01:45:44 by ishaimou          #+#    #+#             */
-/*   Updated: 2020/02/02 10:28:17 by ishaimou         ###   ########.fr       */
+/*   Updated: 2020/02/03 06:56:55 by ishaimou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ char		**split_alias(t_minishell *msh)
 	char	*line;
 	int		i;
 
-	if (!strstr(msh->line, "alias"))
+	if (!ft_strstr(msh->line, "alias"))
 		return (NULL);
 	line = ft_strtrim(msh->line);
 	if (ft_strncmp(line, "alias", 5))
